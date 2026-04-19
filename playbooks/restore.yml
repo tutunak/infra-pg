@@ -100,16 +100,17 @@
     # ------------------------------------------------------------------ #
     # 4. Write recovery settings (postgresql.auto.conf, recovery.signal)
     # ------------------------------------------------------------------ #
-    - name: Write recovery_target_time to postgresql.auto.conf
-      ansible.builtin.copy:
-        dest: "{{ pg_data_dir }}/postgresql.auto.conf"
-        content: |
-          # Written by restore.yml — removed automatically after promotion
-          recovery_target_time = '{{ restore_time }}'
-          recovery_target_action = 'promote'
+    - name: Write recovery settings into postgresql.auto.conf
+      ansible.builtin.blockinfile:
+        path: "{{ pg_data_dir }}/postgresql.auto.conf"
+        create: true
         owner: postgres
         group: postgres
         mode: "0600"
+        marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
+        block: |
+          recovery_target_time = '{{ restore_time }}'
+          recovery_target_action = 'promote'
 
     - name: Write recovery.signal to trigger PITR mode
       ansible.builtin.copy:

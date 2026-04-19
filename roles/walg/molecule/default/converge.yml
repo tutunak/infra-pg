@@ -13,7 +13,7 @@
     walg_s3_secret_key: "miniosecret"
     # Set archive_command here so postgres role templates it correctly on both
     # converge runs — prevents the restart handler from firing during idempotency.
-    pg_archive_command: "source /etc/wal-g/env && /usr/local/bin/wal-g wal-push %p"
+    pg_archive_command: "set -a; . /etc/wal-g/env; set +a && /usr/local/bin/wal-g wal-push %p"
 
   roles:
     - role: postgres
