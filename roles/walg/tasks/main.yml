@@ -18,7 +18,7 @@
 
 - name: Download WAL-G binary
   ansible.builtin.get_url:
-    url: "https://github.com/wal-g/wal-g/releases/download/{{ walg_version }}/wal-g-pg-ubuntu-20.04-amd64"
+    url: "https://github.com/wal-g/wal-g/releases/download/{{ walg_version }}/wal-g-pg-rhel9-amd64"
     dest: "{{ walg_install_path }}"
     mode: "0755"
     owner: root

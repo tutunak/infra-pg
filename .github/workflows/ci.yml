@@ -52,6 +52,9 @@ jobs:
             "molecule-plugins[podman]" \
             ansible-core
 
+      - name: Create dummy vault password file
+        run: echo "dummy" > .vault_pass
+
       - name: Install Ansible collections
         run: ansible-galaxy collection install -r requirements.yml
 

@@ -24,7 +24,6 @@ provisioner:
   config_options:
     defaults:
       callbacks_enabled: profile_tasks
-      roles_path: /home/tutunak/projects/infra-pg/roles
 
 lint: |
   set -e
