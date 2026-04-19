@@ -177,11 +177,6 @@
         path: "{{ pg_data_dir }}/recovery.signal"
         state: absent
 
-    - name: Reload PostgreSQL to apply reset auto.conf settings
-      ansible.builtin.service:
-        name: "{{ pg_service }}"
-        state: reloaded
-
     - name: Re-enable walg-backup.timer after restore
       ansible.builtin.service:
         name: walg-backup.timer

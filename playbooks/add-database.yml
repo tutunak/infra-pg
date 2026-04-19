@@ -94,6 +94,17 @@
       notify: Reload pgbouncer
       no_log: true
 
+    # ------------------------------------------------------------------ #
+    # Operator reminder — host_vars must be updated manually
+    # ------------------------------------------------------------------ #
+    - name: Remind operator to persist the new database entry to host_vars
+      ansible.builtin.debug:
+        msg: >-
+          Database '{{ db_name }}' has been added and PgBouncer updated.
+          IMPORTANT: Add the entry to host_vars/{{ inventory_hostname }}/vars.yml
+          under pg_databases, otherwise the next run of setup.yml will revert
+          PgBouncer config and remove this database from the pool.
+
   handlers:
     - name: Reload pgbouncer
       ansible.builtin.service:

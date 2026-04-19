@@ -13,7 +13,7 @@
     walg_needs_install: >-
       {{
         walg_installed_version.rc != 0
-        or not (walg_installed_version.stdout | default('')) is search((walg_version | regex_escape()) + '(\\s|$)')
+        or not ((walg_installed_version.stdout | default('')) + (walg_installed_version.stderr | default(''))) is search((walg_version | regex_escape()) + '(\\s|$)')
       }}
 
 - name: Download WAL-G binary

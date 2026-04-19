@@ -16,6 +16,11 @@ pgbouncer_private_iface: "eth1"
 # WAL-G release tag — pin a specific version for reproducibility
 walg_version: "v3.0.3"
 
+# WAL-G installation paths — defined here so pg_archive_command can reference them
+# without requiring the walg role to be in the same play.
+walg_install_path: "/usr/local/bin/wal-g"
+walg_config_dir: "/etc/wal-g"
+
 # Archive command injected into postgresql.conf by the postgres role.
 # Set here so the postgres template picks up the correct value on every run,
 # avoiding idempotency failures from the walg role patching the file post-template.
