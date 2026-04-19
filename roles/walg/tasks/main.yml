@@ -83,7 +83,7 @@
 # --------------------------------------------------------------------------- #
 - name: Install walg-restore.sh helper
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../scripts/walg-restore.sh"
+    src: "{{ role_path }}/../../scripts/walg-restore.sh"
     dest: /usr/local/bin/walg-restore.sh
     owner: root
     group: root
@@ -91,7 +91,7 @@
 
 - name: Install walg-wal-fetch.sh wrapper (restore_command)
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../scripts/walg-wal-fetch.sh"
+    src: "{{ role_path }}/../../scripts/walg-wal-fetch.sh"
     dest: /usr/local/bin/walg-wal-fetch.sh
     owner: root
     group: root

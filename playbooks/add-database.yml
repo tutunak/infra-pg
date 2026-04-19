@@ -30,6 +30,7 @@
           - db_password is defined and db_password | length > 0
         fail_msg: >
           Required variables missing. Pass -e "db_name=... db_owner=... db_password=..."
+      no_log: true
 
   tasks:
     # ------------------------------------------------------------------ #

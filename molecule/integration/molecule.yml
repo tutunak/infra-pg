@@ -41,7 +41,7 @@ provisioner:
         walg_s3_secret_key: "miniosecret"
         # Pre-set so postgres role templates the correct archive_command on both
         # converge runs, preventing idempotency failures from the walg lineinfile task.
-        pg_archive_command: "set -a; . /etc/wal-g/env; set +a && /usr/local/bin/wal-g wal-push %p"
+        pg_archive_command: "set -a; . /etc/wal-g/env; set +a; /usr/local/bin/wal-g wal-push %p"
         # Vault vars — fake values for testing
         vault_walg_s3_bucket: "test-bucket"
         vault_walg_s3_endpoint: "http://localhost:9000"

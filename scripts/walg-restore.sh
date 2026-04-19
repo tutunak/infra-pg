@@ -126,11 +126,14 @@ sys.exit(1)
   #             gaps before the backup's first WAL segment are in historical WAL
   #             outside the restore window and do not affect recovery. Only gaps
   #             at or after BACKUP_WAL_FILE cause this check to fail.
-  WAL_VERIFY_JSON=$(/usr/local/bin/wal-g wal-verify integrity --json 2>&1) || {
+  _walg_verify_stderr=$(mktemp)
+  WAL_VERIFY_JSON=$(/usr/local/bin/wal-g wal-verify integrity --json 2>"${_walg_verify_stderr}") || {
     echo "ERROR: wal-g wal-verify integrity failed — archive may be corrupt or inaccessible." >&2
-    printf '%s\n' "${WAL_VERIFY_JSON}" >&2
+    cat "${_walg_verify_stderr}" >&2
+    rm -f "${_walg_verify_stderr}"
     exit 1
   }
+  rm -f "${_walg_verify_stderr}"
   BACKUP_NAME="${BACKUP_NAME}" BACKUP_WAL_FILE="${BACKUP_WAL_FILE}" python3 -c '
 import json, os, sys
 raw = sys.stdin.read()
