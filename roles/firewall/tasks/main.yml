@@ -2,9 +2,11 @@
 # --------------------------------------------------------------------------- #
 # 1. Install and start firewalld
 # --------------------------------------------------------------------------- #
-- name: Install firewalld
+- name: Install firewalld and python3-firewall
   ansible.builtin.dnf:
-    name: firewalld
+    name:
+      - firewalld
+      - python3-firewall
     state: present
 
 - name: Enable and start firewalld

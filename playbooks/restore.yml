@@ -139,7 +139,11 @@
         login_user: postgres
       become_user: postgres
       register: pg_recovery_check
-      until: not pg_recovery_check.query_result[0]['pg_is_in_recovery']
+      failed_when: false
+      until: >-
+        pg_recovery_check.query_result is defined
+        and pg_recovery_check.query_result | length > 0
+        and not pg_recovery_check.query_result[0]['pg_is_in_recovery']
       retries: 360
       delay: 10
 
