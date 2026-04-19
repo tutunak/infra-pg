@@ -1,0 +1,3 @@
+{% for db in pg_databases %}
+"{{ db.owner }}" "{{ db.password }}"
+{% endfor %}

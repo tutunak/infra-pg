@@ -1,0 +1,57 @@
+---
+# --------------------------------------------------------------------------- #
+# 1. PGDG repository (already installed by postgres role; idempotent if run alone)
+# --------------------------------------------------------------------------- #
+- name: Install PGDG repository RPM
+  ansible.builtin.dnf:
+    name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+
+# --------------------------------------------------------------------------- #
+# 2. Install PgBouncer
+# --------------------------------------------------------------------------- #
+- name: Install pgbouncer package
+  ansible.builtin.dnf:
+    name: pgbouncer
+    state: present
+
+# --------------------------------------------------------------------------- #
+# 3. Gather facts for private interface IP
+# --------------------------------------------------------------------------- #
+- name: Gather network facts
+  ansible.builtin.setup:
+    gather_subset:
+      - network
+  when: ansible_facts[pgbouncer_private_iface] is not defined
+
+# --------------------------------------------------------------------------- #
+# 4. Configuration files
+# --------------------------------------------------------------------------- #
+- name: Template pgbouncer.ini
+  ansible.builtin.template:
+    src: pgbouncer.ini.j2
+    dest: /etc/pgbouncer/pgbouncer.ini
+    owner: pgbouncer
+    group: pgbouncer
+    mode: "0640"
+  notify: Reload pgbouncer
+
+- name: Template userlist.txt
+  ansible.builtin.template:
+    src: userlist.txt.j2
+    dest: /etc/pgbouncer/userlist.txt
+    owner: pgbouncer
+    group: pgbouncer
+    mode: "0600"
+  notify: Reload pgbouncer
+  no_log: true
+
+# --------------------------------------------------------------------------- #
+# 5. Enable and start service
+# --------------------------------------------------------------------------- #
+- name: Enable and start pgbouncer
+  ansible.builtin.service:
+    name: pgbouncer
+    enabled: true
+    state: started

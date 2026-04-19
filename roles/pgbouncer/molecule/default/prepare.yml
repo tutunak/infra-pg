@@ -1,0 +1,48 @@
+---
+- name: Prepare container for PgBouncer testing
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Wait for systemd to be ready
+      ansible.builtin.command: systemctl is-system-running
+      register: systemd_status
+      until: systemd_status.stdout in ['running', 'degraded']
+      retries: 20
+      delay: 3
+      changed_when: false
+      failed_when: false
+
+    - name: Install PGDG repository RPM
+      ansible.builtin.dnf:
+        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+
+    - name: Install iproute for dummy interface creation
+      ansible.builtin.dnf:
+        name:
+          - iproute
+          - net-tools
+        state: present
+
+    - name: Load dummy kernel module
+      ansible.builtin.command: modprobe dummy
+      changed_when: false
+      failed_when: false
+
+    - name: Create dummy0 network interface
+      ansible.builtin.command: ip link add dummy0 type dummy
+      register: dummy_create
+      changed_when: dummy_create.rc == 0
+      failed_when: dummy_create.rc != 0 and 'already exists' not in dummy_create.stderr
+
+    - name: Assign IP address to dummy0
+      ansible.builtin.command: ip addr add 10.0.0.1/24 dev dummy0
+      register: dummy_addr
+      changed_when: dummy_addr.rc == 0
+      failed_when: dummy_addr.rc != 0 and 'already exists' not in dummy_addr.stderr
+
+    - name: Bring up dummy0 interface
+      ansible.builtin.command: ip link set dummy0 up
+      changed_when: false

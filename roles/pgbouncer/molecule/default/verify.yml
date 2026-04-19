@@ -1,0 +1,61 @@
+---
+- name: Verify PgBouncer role
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert pgbouncer service is active
+      ansible.builtin.assert:
+        that:
+          - "'pgbouncer.service' in ansible_facts.services"
+          - "ansible_facts.services['pgbouncer.service']['state'] == 'running'"
+        fail_msg: "pgbouncer service is not running"
+
+    - name: Check port 6432 is bound
+      ansible.builtin.command: ss -tlnp
+      register: ss_output
+      changed_when: false
+
+    - name: Assert port 6432 is bound
+      ansible.builtin.assert:
+        that:
+          - "'6432' in ss_output.stdout"
+        fail_msg: "Port 6432 is not bound by pgbouncer"
+
+    - name: Read pgbouncer.ini
+      ansible.builtin.slurp:
+        src: /etc/pgbouncer/pgbouncer.ini
+      register: pgbouncer_ini_content
+
+    - name: Assert pool_mode is transaction
+      ansible.builtin.assert:
+        that:
+          - "'pool_mode = transaction' in (pgbouncer_ini_content.content | b64decode)"
+        fail_msg: "pool_mode is not set to transaction in pgbouncer.ini"
+
+    - name: Assert auth_type is scram-sha-256
+      ansible.builtin.assert:
+        that:
+          - "'auth_type = scram-sha-256' in (pgbouncer_ini_content.content | b64decode)"
+        fail_msg: "auth_type is not set to scram-sha-256 in pgbouncer.ini"
+
+    - name: Check userlist.txt permissions
+      ansible.builtin.stat:
+        path: /etc/pgbouncer/userlist.txt
+      register: userlist_stat
+
+    - name: Assert userlist.txt has mode 0600
+      ansible.builtin.assert:
+        that:
+          - "userlist_stat.stat.mode == '0600'"
+        fail_msg: "userlist.txt does not have mode 0600 (actual: {{ userlist_stat.stat.mode }})"
+
+    - name: Assert userlist.txt is owned by pgbouncer
+      ansible.builtin.assert:
+        that:
+          - "userlist_stat.stat.pw_name == 'pgbouncer'"
+        fail_msg: "userlist.txt is not owned by pgbouncer user"

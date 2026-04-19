@@ -1,0 +1,28 @@
+---
+# Minimum PgBouncer version (SCRAM-SHA-256 support requires >= 1.21)
+pgbouncer_min_version: "1.21"
+
+# Port PgBouncer listens on
+pgbouncer_port: 6432
+
+# Private network interface (override per host if NIC name differs)
+pgbouncer_private_iface: "eth1"
+
+# Pool mode
+pgbouncer_pool_mode: "transaction"
+
+# Auth type — scram-sha-256 supported since PgBouncer 1.21
+pgbouncer_auth_type: "scram-sha-256"
+
+# Max client connections
+pgbouncer_max_client_conn: 200
+
+# Default pool size per database/user pair
+pgbouncer_default_pool_size: 20
+
+# Databases and users — set in host_vars/<host>/vars.yml
+# Each item: { name: "dbname", owner: "username", password: "secret" }
+pg_databases: []
+
+# PostgreSQL port PgBouncer connects to
+pg_port: 5432

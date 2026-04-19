@@ -162,13 +162,13 @@ ansible-playbook playbooks/restore.yml \
 - Create: `roles/pgbouncer/handlers/main.yml`
 - Create: `roles/pgbouncer/molecule/default/` (full scenario)
 
-- [ ] install `pgbouncer` >= 1.21 from PGDG repo (pin minimum version in defaults)
-- [ ] template `pgbouncer.ini`: `listen_addr = {{ ansible_facts[pgbouncer_private_iface].ipv4.address }}`, `listen_port = 6432`, `pool_mode = transaction`, `auth_type = scram-sha-256`, per-database `[databases]` entries from `pg_databases`
-- [ ] template `userlist.txt`: one line per app user with plaintext password from vault (`"username" "password"` format); file mode 0600, owner pgbouncer
-- [ ] enable and start `pgbouncer` service via handler
-- [ ] write full Molecule scenario with `privileged: true`, `tmpfs: [/run, /tmp]`; `prepare.yml` creates dummy private interface (`ip link add dummy0 type dummy && ip addr add 10.0.0.1/24 dev dummy0`)
-- [ ] `verify.yml`: pgbouncer running, port 6432 bound, `pool_mode = transaction` in config, `auth_type = scram-sha-256` in config, userlist.txt mode is 0600
-- [ ] run `molecule test` — must pass including idempotency
+- [x] install `pgbouncer` >= 1.21 from PGDG repo (pin minimum version in defaults)
+- [x] template `pgbouncer.ini`: `listen_addr = {{ ansible_facts[pgbouncer_private_iface].ipv4.address }}`, `listen_port = 6432`, `pool_mode = transaction`, `auth_type = scram-sha-256`, per-database `[databases]` entries from `pg_databases`
+- [x] template `userlist.txt`: one line per app user with plaintext password from vault (`"username" "password"` format); file mode 0600, owner pgbouncer
+- [x] enable and start `pgbouncer` service via handler
+- [x] write full Molecule scenario with `privileged: true`, `tmpfs: [/run, /tmp]`; `prepare.yml` creates dummy private interface (`ip link add dummy0 type dummy && ip addr add 10.0.0.1/24 dev dummy0`)
+- [x] `verify.yml`: pgbouncer running, port 6432 bound, `pool_mode = transaction` in config, `auth_type = scram-sha-256` in config, userlist.txt mode is 0600
+- [x] run `molecule test` — must pass including idempotency
 
 ### Task 4: `walg` role
 
