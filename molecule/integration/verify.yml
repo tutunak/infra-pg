@@ -121,8 +121,10 @@
     - name: Connect through PgBouncer with test user credentials
       ansible.builtin.command: >
         /usr/pgsql-17/bin/psql
-        "host=10.0.0.1 port=6432 dbname=testapp_db user=testapp_user password=testpassword123"
+        "host=10.0.0.1 port=6432 dbname=testapp_db user=testapp_user"
         -c "SELECT 1;"
+      environment:
+        PGPASSWORD: "testpassword123"
       register: pgbouncer_connect
       changed_when: false
       failed_when: pgbouncer_connect.rc != 0

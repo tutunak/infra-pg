@@ -132,13 +132,14 @@ sys.exit(1)
   #             outside the restore window and do not affect recovery. Only gaps
   #             at or after BACKUP_WAL_FILE cause this check to fail.
   _walg_verify_stderr=$(mktemp)
+  trap 'rm -f "${_walg_verify_stderr}"' EXIT
   WAL_VERIFY_JSON=$(/usr/local/bin/wal-g wal-verify integrity --json 2>"${_walg_verify_stderr}") || {
     echo "ERROR: wal-g wal-verify integrity failed — archive may be corrupt or inaccessible." >&2
     cat "${_walg_verify_stderr}" >&2
-    rm -f "${_walg_verify_stderr}"
     exit 1
   }
   rm -f "${_walg_verify_stderr}"
+  trap - EXIT
   BACKUP_NAME="${BACKUP_NAME}" BACKUP_WAL_FILE="${BACKUP_WAL_FILE}" python3 -c '
 import json, os, sys
 raw = sys.stdin.read()
