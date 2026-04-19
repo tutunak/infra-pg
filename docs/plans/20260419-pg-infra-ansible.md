@@ -196,13 +196,13 @@ ansible-playbook playbooks/restore.yml \
 - Create: `roles/firewall/defaults/main.yml`
 - Create: `roles/firewall/molecule/default/` (full scenario)
 
-- [ ] ensure `firewalld` installed and running
-- [ ] add rich rule: allow TCP 6432 from `pg_private_subnet` in internal zone (permanent + runtime)
-- [ ] ensure ports 5432 and 6432 are NOT in public zone services/ports
-- [ ] ensure SSH (22) remains open on public zone
-- [ ] write full Molecule scenario with `privileged: true`, `tmpfs: [/run, /tmp]` (required for firewalld + dbus in container)
-- [ ] `verify.yml`: firewalld running, rich rule for 6432 present, port 5432 absent from public zone, SSH present in public zone
-- [ ] run `molecule test` — must pass including idempotency
+- [x] ensure `firewalld` installed and running
+- [x] add rich rule: allow TCP 6432 from `pg_private_subnet` in internal zone (permanent + runtime)
+- [x] ensure ports 5432 and 6432 are NOT in public zone services/ports
+- [x] ensure SSH (22) remains open on public zone
+- [x] write full Molecule scenario with `privileged: true`, `tmpfs: [/run, /tmp]` (required for firewalld + dbus in container)
+- [x] `verify.yml`: firewalld running, rich rule for 6432 present, port 5432 absent from public zone, SSH present in public zone
+- [x] run `molecule test` — must pass including idempotency
 
 ### Task 6: Playbooks
 

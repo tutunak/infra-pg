@@ -1,0 +1,10 @@
+---
+# Private subnet allowed to reach PgBouncer (TCP 6432)
+# Override in group_vars/all.yml or host_vars
+pg_private_subnet: "10.0.0.0/24"
+
+# Firewalld zone where the rich rule is applied
+firewall_internal_zone: "internal"
+
+# Public zone name
+firewall_public_zone: "public"

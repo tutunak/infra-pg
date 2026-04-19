@@ -1,0 +1,79 @@
+---
+# --------------------------------------------------------------------------- #
+# 1. Install and start firewalld
+# --------------------------------------------------------------------------- #
+- name: Install firewalld
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: Enable and start firewalld
+  ansible.builtin.service:
+    name: firewalld
+    enabled: true
+    state: started
+
+# --------------------------------------------------------------------------- #
+# 2. Internal zone — allow PgBouncer from private subnet
+# --------------------------------------------------------------------------- #
+- name: Add rich rule to allow TCP 6432 from private subnet (permanent)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_internal_zone }}"
+    rich_rule: "rule family='ipv4' source address='{{ pg_private_subnet }}' port port='6432' protocol='tcp' accept"
+    permanent: true
+    state: enabled
+
+- name: Add rich rule to allow TCP 6432 from private subnet (runtime)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_internal_zone }}"
+    rich_rule: "rule family='ipv4' source address='{{ pg_private_subnet }}' port port='6432' protocol='tcp' accept"
+    immediate: true
+    state: enabled
+
+# --------------------------------------------------------------------------- #
+# 3. Public zone — remove PostgreSQL and PgBouncer ports if present
+# --------------------------------------------------------------------------- #
+- name: Ensure port 5432 is absent from public zone (permanent)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    port: "5432/tcp"
+    permanent: true
+    state: disabled
+
+- name: Ensure port 5432 is absent from public zone (runtime)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    port: "5432/tcp"
+    immediate: true
+    state: disabled
+
+- name: Ensure port 6432 is absent from public zone (permanent)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    port: "6432/tcp"
+    permanent: true
+    state: disabled
+
+- name: Ensure port 6432 is absent from public zone (runtime)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    port: "6432/tcp"
+    immediate: true
+    state: disabled
+
+# --------------------------------------------------------------------------- #
+# 4. Public zone — ensure SSH remains open
+# --------------------------------------------------------------------------- #
+- name: Ensure SSH is allowed in public zone (permanent)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    service: ssh
+    permanent: true
+    state: enabled
+
+- name: Ensure SSH is allowed in public zone (runtime)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    service: ssh
+    immediate: true
+    state: enabled

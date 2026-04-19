@@ -1,0 +1,32 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: podman
+
+platforms:
+  - name: firewall-test
+    image: docker.io/geerlingguy/docker-rockylinux9-ansible:latest
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    tmpfs:
+      /run: "rw,size=65536k,mode=755"
+      /tmp: "rw,size=65536k,mode=755"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    capabilities:
+      - NET_ADMIN
+      - SYS_ADMIN
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: profile_tasks
+      roles_path: /home/tutunak/projects/infra-pg/roles
+
+lint: |
+  set -e
+  yamllint .
+  ansible-lint

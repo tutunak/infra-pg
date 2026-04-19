@@ -1,0 +1,56 @@
+---
+- name: Verify firewall role
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Check service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert firewalld service is active
+      ansible.builtin.assert:
+        that:
+          - "'firewalld.service' in ansible_facts.services"
+          - "ansible_facts.services['firewalld.service']['state'] == 'running'"
+        fail_msg: "firewalld service is not running"
+
+    - name: Get rich rules in internal zone
+      ansible.builtin.command: firewall-cmd --zone=internal --list-rich-rules
+      register: internal_rich_rules
+      changed_when: false
+
+    - name: Assert rich rule for TCP 6432 from private subnet exists
+      ansible.builtin.assert:
+        that:
+          - "'6432' in internal_rich_rules.stdout"
+          - "'10.0.0.0/24' in internal_rich_rules.stdout"
+        fail_msg: "Rich rule for TCP 6432 from 10.0.0.0/24 not found in internal zone"
+
+    - name: Get ports in public zone
+      ansible.builtin.command: firewall-cmd --zone=public --list-ports
+      register: public_ports
+      changed_when: false
+
+    - name: Assert port 5432 is absent from public zone
+      ansible.builtin.assert:
+        that:
+          - "'5432' not in public_ports.stdout"
+        fail_msg: "Port 5432 is exposed in the public zone (should be absent)"
+
+    - name: Assert port 6432 is absent from public zone
+      ansible.builtin.assert:
+        that:
+          - "'6432' not in public_ports.stdout"
+        fail_msg: "Port 6432 is exposed in the public zone (should be absent)"
+
+    - name: Get services in public zone
+      ansible.builtin.command: firewall-cmd --zone=public --list-services
+      register: public_services
+      changed_when: false
+
+    - name: Assert SSH is present in public zone
+      ansible.builtin.assert:
+        that:
+          - "'ssh' in public_services.stdout"
+        fail_msg: "SSH service is not present in the public zone"
