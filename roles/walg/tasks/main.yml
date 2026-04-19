@@ -77,3 +77,22 @@
     name: walg-backup.timer
     enabled: true
     state: started
+
+# --------------------------------------------------------------------------- #
+# 4. Install restore helper scripts so they are available after every setup run
+# --------------------------------------------------------------------------- #
+- name: Install walg-restore.sh helper
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../scripts/walg-restore.sh"
+    dest: /usr/local/bin/walg-restore.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install walg-wal-fetch.sh wrapper (restore_command)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../scripts/walg-wal-fetch.sh"
+    dest: /usr/local/bin/walg-wal-fetch.sh
+    owner: root
+    group: root
+    mode: "0755"

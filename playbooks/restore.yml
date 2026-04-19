@@ -230,17 +230,27 @@
               Check PostgreSQL logs on {{ inventory_hostname }} for WAL replay errors.
 
         # -------------------------------------------------------------- #
-        # 7. Remove recovery settings from postgresql.auto.conf
+        # 9. Remove recovery settings from postgresql.auto.conf
         # NOTE: recovery_target_time and recovery_target_action are
         # postmaster-context parameters in PostgreSQL 17 and cannot be
         # removed via ALTER SYSTEM RESET after server start. Use blockinfile
-        # with state: absent to remove the block we wrote in step 6.
+        # with state: absent to remove the block we wrote in step 6, then
+        # call pg_reload_conf() so restore_command (a sighup-reloadable
+        # parameter) takes effect immediately without a full restart.
         # -------------------------------------------------------------- #
         - name: Remove recovery settings block from postgresql.auto.conf
           ansible.builtin.blockinfile:
             path: "{{ pg_data_dir }}/postgresql.auto.conf"
             marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
             state: absent
+
+        - name: Reload PostgreSQL config to deactivate restore_command
+          community.postgresql.postgresql_query:
+            db: postgres
+            query: "SELECT pg_reload_conf()"
+            login_user: postgres
+          become: true
+          become_user: postgres
 
         - name: Remove recovery.signal if still present after promotion
           ansible.builtin.file:

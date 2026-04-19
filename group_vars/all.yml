@@ -24,7 +24,16 @@ walg_config_dir: "/etc/wal-g"
 # Archive command injected into postgresql.conf by the postgres role.
 # Set here so the postgres template picks up the correct value on every run,
 # avoiding idempotency failures from the walg role patching the file post-template.
-pg_archive_command: "set -a; . {{ walg_config_dir }}/env; set +a && {{ walg_install_path }} wal-push %p"
+pg_archive_command: "set -a; . {{ walg_config_dir }}/env; set +a; {{ walg_install_path }} wal-push %p"
+
+# PgBouncer tuning — defined here so add-database.yml can render pgbouncer
+# templates without loading the pgbouncer role. Values mirror role defaults.
+pgbouncer_port: 6432
+pgbouncer_pool_mode: "transaction"
+pgbouncer_auth_type: "scram-sha-256"
+pgbouncer_max_client_conn: 200
+pgbouncer_default_pool_size: 20
+pg_port: 5432
 
 # S3 / object-storage credentials — values come from vault
 walg_s3_bucket:     "{{ vault_walg_s3_bucket }}"
