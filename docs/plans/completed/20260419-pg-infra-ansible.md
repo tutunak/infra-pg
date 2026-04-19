@@ -268,8 +268,8 @@ ansible-playbook playbooks/restore.yml \
 - Modify: `README.md`
 - Create: `docs/plans/completed/`
 
-- [ ] update `README.md`: prerequisites (Ansible, collections, Podman for testing), vault setup instructions, quickstart, add-database usage, restore usage (emphasize `restore_confirm=yes`)
-- [ ] move this plan to `docs/plans/completed/20260419-pg-infra-ansible.md`
+- [x] update `README.md`: prerequisites (Ansible, collections, Podman for testing), vault setup instructions, quickstart, add-database usage, restore usage (emphasize `restore_confirm=yes`)
+- [x] move this plan to `docs/plans/completed/20260419-pg-infra-ansible.md`
 
 ## Post-Completion
 
