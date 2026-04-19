@@ -28,6 +28,9 @@ set -a
 . /etc/wal-g/env
 set +a
 
+# Fetch the backup list once and cache it — avoid a second round-trip to S3 that
+# could observe a different state (new backups pushed, expiry run) between calls.
+#
 # Find the latest base backup whose finish_time is at or before RESTORE_TIME.
 # finish_time (available via --detail) marks when the backup completed — a backup
 # that started before RESTORE_TIME but finished after it cannot be used as a PITR
@@ -41,8 +44,11 @@ set +a
 # python3 -c is used (not "python3 - <<'HEREDOC'") so that stdin remains
 # connected to the wal-g pipe; with "python3 -", Python consumes stdin to
 # read the script source and json.load(sys.stdin) then sees EOF.
+_BACKUP_LIST_JSON=$(/usr/local/bin/wal-g backup-list --detail --json 2>/dev/null) \
+  || { echo "ERROR: wal-g backup-list failed — cannot reach S3 or credentials are invalid" >&2; exit 1; }
+
 BACKUP_NAME=$(
-  /usr/local/bin/wal-g backup-list --detail --json 2>/dev/null | python3 -c '
+  echo "${_BACKUP_LIST_JSON}" | python3 -c '
 import os, json, sys
 from datetime import datetime, timezone
 
@@ -93,12 +99,11 @@ else:
 ) || { echo "ERROR: failed to select an eligible base backup for RESTORE_TIME=${RESTORE_TIME}" >&2; exit 1; }
 
 if [[ "$CHECK_ONLY" == "true" ]]; then
-  # Retrieve the selected backup's first WAL segment name so the FAILURE check
-  # can be scoped to the actual restore window. MISSING_LOST segments whose
-  # end_segment is before this name are in historical WAL that predates the
-  # selected backup and cannot affect the restore.
+  # Extract the selected backup's first WAL segment name from the cached backup-list
+  # output — reusing the same JSON avoids a second S3 round-trip that could observe
+  # a different backup catalogue (new backups pushed, expiry run between calls).
   BACKUP_WAL_FILE=$(
-    /usr/local/bin/wal-g backup-list --detail --json 2>/dev/null | BACKUP_NAME="${BACKUP_NAME}" python3 -c '
+    echo "${_BACKUP_LIST_JSON}" | BACKUP_NAME="${BACKUP_NAME}" python3 -c '
 import json, os, sys
 backups = json.load(sys.stdin)
 target = os.environ["BACKUP_NAME"]

@@ -4,6 +4,7 @@
 Description=WAL-G full backup push to S3
 After=postgresql-{{ pg_version }}.service
 Requires=postgresql-{{ pg_version }}.service
+ConditionPathExists={{ walg_config_dir }}/env
 
 [Service]
 Type=oneshot
