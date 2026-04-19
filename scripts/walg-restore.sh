@@ -7,7 +7,7 @@ set -euo pipefail
 : "${PGDATA:?PGDATA environment variable must be set}"
 
 set -a
-source /etc/wal-g/env
+. /etc/wal-g/env
 set +a
 
 exec /usr/local/bin/wal-g backup-fetch "$PGDATA" LATEST

@@ -139,8 +139,8 @@
       become_user: postgres
       register: pg_recovery_check
       until: not pg_recovery_check.query_result[0]['pg_is_in_recovery']
-      retries: 60
-      delay: 5
+      retries: 360
+      delay: 10
 
     # ------------------------------------------------------------------ #
     # 7. Remove recovery settings (ALTER SYSTEM RESET is idempotent)
