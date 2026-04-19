@@ -148,21 +148,17 @@
       delay: 10
 
     # ------------------------------------------------------------------ #
-    # 7. Remove recovery settings (ALTER SYSTEM RESET is idempotent)
+    # 7. Remove recovery settings from postgresql.auto.conf
+    # NOTE: recovery_target_time and recovery_target_action are
+    # postmaster-context parameters in PostgreSQL 17 and cannot be
+    # removed via ALTER SYSTEM RESET after server start. Use blockinfile
+    # with state: absent to remove the block we wrote in step 4.
     # ------------------------------------------------------------------ #
-    - name: Remove recovery_target_time from postgresql.auto.conf
-      community.postgresql.postgresql_query:
-        db: postgres
-        query: "ALTER SYSTEM RESET recovery_target_time"
-        login_user: postgres
-      become_user: postgres
-
-    - name: Remove recovery_target_action from postgresql.auto.conf
-      community.postgresql.postgresql_query:
-        db: postgres
-        query: "ALTER SYSTEM RESET recovery_target_action"
-        login_user: postgres
-      become_user: postgres
+    - name: Remove recovery settings block from postgresql.auto.conf
+      ansible.builtin.blockinfile:
+        path: "{{ pg_data_dir }}/postgresql.auto.conf"
+        marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
+        state: absent
 
     - name: Remove recovery.signal if still present after promotion
       ansible.builtin.file:
