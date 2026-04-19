@@ -147,6 +147,16 @@
       retries: 360
       delay: 10
 
+    - name: Assert recovery completed successfully
+      ansible.builtin.assert:
+        that:
+          - pg_recovery_check.query_result is defined
+          - pg_recovery_check.query_result | length > 0
+          - not pg_recovery_check.query_result[0]['pg_is_in_recovery']
+        fail_msg: >
+          PostgreSQL did not complete recovery within the timeout (3600s).
+          Check PostgreSQL logs on {{ inventory_hostname }} for WAL replay errors.
+
     # ------------------------------------------------------------------ #
     # 7. Remove recovery settings from postgresql.auto.conf
     # NOTE: recovery_target_time and recovery_target_action are

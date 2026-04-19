@@ -2,6 +2,11 @@
 # WAL-G release tag — pin a specific version
 walg_version: "v3.0.3"
 
+# WAL-G binary filename on GitHub releases — must match the OS/arch of the target host.
+# Rocky Linux 9 / RHEL 9: wal-g-pg-rhel9-amd64
+# Ubuntu 20.04:            wal-g-pg-ubuntu-20.04-amd64
+walg_binary_name: "wal-g-pg-rhel9-amd64"
+
 # Installation path for the wal-g binary
 walg_install_path: "/usr/local/bin/wal-g"
 
