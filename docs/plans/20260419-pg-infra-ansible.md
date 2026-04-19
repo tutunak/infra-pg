@@ -260,7 +260,7 @@ ansible-playbook playbooks/restore.yml \
 - [x] `molecule test` passes for all four roles (idempotency verified in each)
 - [x] `molecule test -s integration` passes
 - [x] GitHub Actions workflow YAML passes yamllint
-- [ ] README documents: prerequisites, vault setup, setup.yml quickstart, add-database usage, restore usage with confirmation flag
+- [x] README documents: prerequisites, vault setup, setup.yml quickstart, add-database usage, restore usage with confirmation flag
 
 ### Task 10: [Final] Documentation and cleanup
 
