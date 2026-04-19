@@ -1,0 +1,115 @@
+---
+# --------------------------------------------------------------------------- #
+# 1. PGDG repository
+# --------------------------------------------------------------------------- #
+- name: Install PGDG repository RPM
+  ansible.builtin.dnf:
+    name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+
+- name: Disable built-in PostgreSQL module
+  ansible.builtin.command:
+    cmd: dnf module disable -y postgresql
+  register: pg_module_disable
+  changed_when: "'Disabling' in pg_module_disable.stdout or 'disabled' in pg_module_disable.stdout"
+  failed_when: pg_module_disable.rc != 0 and 'Nothing to do' not in pg_module_disable.stdout
+
+# --------------------------------------------------------------------------- #
+# 2. Install packages
+# --------------------------------------------------------------------------- #
+- name: Install PostgreSQL {{ pg_version }} packages
+  ansible.builtin.dnf:
+    name:
+      - "postgresql{{ pg_version }}-server"
+      - "postgresql{{ pg_version }}"
+      - python3-psycopg2
+    state: present
+
+# --------------------------------------------------------------------------- #
+# 3. Initialise the cluster (idempotent: skip if data dir already exists)
+# --------------------------------------------------------------------------- #
+- name: Check if PostgreSQL data directory is initialised
+  ansible.builtin.stat:
+    path: "{{ pg_data_dir }}/PG_VERSION"
+  register: pg_data_stat
+
+- name: Initialise PostgreSQL cluster
+  ansible.builtin.command:
+    cmd: "/usr/pgsql-{{ pg_version }}/bin/postgresql-{{ pg_version }}-setup initdb"
+  when: not pg_data_stat.stat.exists
+  changed_when: true
+
+# --------------------------------------------------------------------------- #
+# 4. Configuration files
+# --------------------------------------------------------------------------- #
+- name: Template postgresql.conf
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ pg_data_dir }}/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  notify: Restart postgresql
+
+- name: Template pg_hba.conf
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: "{{ pg_data_dir }}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  notify: Reload postgresql
+
+# --------------------------------------------------------------------------- #
+# 5. Enable and start service
+# --------------------------------------------------------------------------- #
+- name: Enable and start postgresql-{{ pg_version }}
+  ansible.builtin.service:
+    name: "postgresql-{{ pg_version }}"
+    enabled: true
+    state: started
+
+# Flush handlers so PG is running before we create databases/users
+- name: Flush handlers to apply config changes
+  ansible.builtin.meta: flush_handlers
+
+# --------------------------------------------------------------------------- #
+# 6. Databases and users (idempotent via community.postgresql modules)
+# Users must exist before databases that reference them as owner.
+# --------------------------------------------------------------------------- #
+- name: Create PostgreSQL users
+  community.postgresql.postgresql_user:
+    name: "{{ item.owner }}"
+    password: "{{ item.password }}"
+    state: present
+    login_user: postgres
+  become: true
+  become_user: postgres
+  loop: "{{ pg_databases }}"
+  when: pg_databases | length > 0
+  no_log: true
+
+- name: Create PostgreSQL databases
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner }}"
+    state: present
+    login_user: postgres
+  become: true
+  become_user: postgres
+  loop: "{{ pg_databases }}"
+  when: pg_databases | length > 0
+
+- name: Grant database privileges to owners
+  community.postgresql.postgresql_privs:
+    db: "{{ item.name }}"
+    roles: "{{ item.owner }}"
+    type: database
+    privs: ALL
+    state: present
+    login_user: postgres
+  become: true
+  become_user: postgres
+  loop: "{{ pg_databases }}"
+  when: pg_databases | length > 0

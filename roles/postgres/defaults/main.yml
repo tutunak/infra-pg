@@ -1,0 +1,19 @@
+---
+# PostgreSQL version to install
+pg_version: 17
+
+# Databases and users to create — override in host_vars/<host>/vars.yml
+# Each item: { name: "dbname", owner: "username", password: "secret" }
+pg_databases: []
+
+# PostgreSQL data directory
+pg_data_dir: "/var/lib/pgsql/{{ pg_version }}/data"
+
+# Archive command (set by walg role; empty means archiving disabled)
+pg_archive_command: ""
+
+# Listen address — keep on localhost; PgBouncer proxies external connections
+pg_listen_addresses: "localhost"
+
+# Max connections
+pg_max_connections: 100

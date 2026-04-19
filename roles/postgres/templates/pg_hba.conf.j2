@@ -1,0 +1,17 @@
+# pg_hba.conf — managed by Ansible (postgres role)
+# Do not edit manually; changes will be overwritten.
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# postgres superuser: peer auth on Unix socket only
+local   all             postgres                                peer
+
+# App users: SCRAM-SHA-256 on Unix socket
+local   all             all                                     scram-sha-256
+
+# PgBouncer on localhost: SCRAM-SHA-256 only from 127.0.0.1
+host    all             all             127.0.0.1/32            scram-sha-256
+
+# Deny all other remote connections
+host    all             all             0.0.0.0/0               reject
+host    all             all             ::/0                    reject

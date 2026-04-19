@@ -1,0 +1,28 @@
+# postgresql.conf — managed by Ansible (postgres role)
+# Do not edit manually; changes will be overwritten.
+
+# Connection settings
+listen_addresses = '{{ pg_listen_addresses }}'
+port = 5432
+max_connections = {{ pg_max_connections }}
+
+# Authentication
+password_encryption = scram-sha-256
+
+# Write-ahead log
+wal_level = replica
+archive_mode = on
+archive_command = '{{ pg_archive_command if pg_archive_command else "/bin/true" }}'
+
+# Logging
+log_destination = 'stderr'
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%a.log'
+log_truncate_on_rotation = on
+log_rotation_age = 1d
+log_line_prefix = '%m [%p] %q%u@%d '
+
+# Locale and timezone — inherited from initdb; only override what's needed
+timezone = 'UTC'
+default_text_search_config = 'pg_catalog.english'

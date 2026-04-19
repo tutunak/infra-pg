@@ -140,17 +140,17 @@ ansible-playbook playbooks/restore.yml \
 - Create: `roles/postgres/molecule/default/converge.yml`
 - Create: `roles/postgres/molecule/default/verify.yml`
 
-- [ ] add PGDG repo and install `postgresql17-server`, `postgresql17` packages
-- [ ] run `postgresql-17-setup initdb` (idempotent: skip if data dir exists)
-- [ ] template `postgresql.conf`: `listen_addresses = 'localhost'`, `archive_mode = on`, `archive_command = '{{ pg_archive_command }}'` (defaults to empty string — set by walg role via vars)
-- [ ] template `pg_hba.conf`: `scram-sha-256` for local socket and `127.0.0.1/32`, deny all else; `postgres` superuser via peer on local socket
-- [ ] enable and start `postgresql-17` service via handler
-- [ ] create per-app databases and users from `pg_databases` var using `community.postgresql` modules (idempotent)
-- [ ] write `molecule.yml`: podman driver, `rockylinux/rockylinux:9`, `command: /usr/sbin/init`, `privileged: true`, `tmpfs: [/run, /tmp]`
-- [ ] write `prepare.yml`: install `python3-psycopg2`, `postgresql17-server` prereqs; configure systemd in container
-- [ ] write `converge.yml`: apply `postgres` role with test `pg_databases`
-- [ ] write `verify.yml`: service running, port 5432 bound to 127.0.0.1 only (not 0.0.0.0), PG17 version, `scram-sha-256` in `pg_hba.conf`, test databases and users exist
-- [ ] run `molecule test` — must pass including idempotency check
+- [x] add PGDG repo and install `postgresql17-server`, `postgresql17` packages
+- [x] run `postgresql-17-setup initdb` (idempotent: skip if data dir exists)
+- [x] template `postgresql.conf`: `listen_addresses = 'localhost'`, `archive_mode = on`, `archive_command = '{{ pg_archive_command }}'` (defaults to empty string — set by walg role via vars)
+- [x] template `pg_hba.conf`: `scram-sha-256` for local socket and `127.0.0.1/32`, deny all else; `postgres` superuser via peer on local socket
+- [x] enable and start `postgresql-17` service via handler
+- [x] create per-app databases and users from `pg_databases` var using `community.postgresql` modules (idempotent)
+- [x] write `molecule.yml`: podman driver, `geerlingguy/docker-rockylinux9-ansible`, `command: /usr/lib/systemd/systemd`, `privileged: true`, `tmpfs: {/run, /tmp}`
+- [x] write `prepare.yml`: install `python3-psycopg2`, `postgresql17-server` prereqs; configure systemd in container
+- [x] write `converge.yml`: apply `postgres` role with test `pg_databases`
+- [x] write `verify.yml`: service running, port 5432 bound to 127.0.0.1 only (not 0.0.0.0), PG17 version, `scram-sha-256` in `pg_hba.conf`, test databases and users exist
+- [x] run `molecule test` — must pass including idempotency check
 
 ### Task 3: `pgbouncer` role
 

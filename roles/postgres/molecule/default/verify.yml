@@ -1,0 +1,103 @@
+---
+- name: Verify PostgreSQL role
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Check postgresql service is running
+      ansible.builtin.service_facts:
+
+    - name: Assert postgresql-17 service is active
+      ansible.builtin.assert:
+        that:
+          - "'postgresql-17.service' in ansible_facts.services"
+          - "ansible_facts.services['postgresql-17.service']['state'] == 'running'"
+        fail_msg: "postgresql-17 service is not running"
+
+    - name: Check port 5432 is bound to localhost only
+      ansible.builtin.command: ss -tlnp
+      register: ss_output
+      changed_when: false
+
+    - name: Assert port 5432 is bound to 127.0.0.1
+      ansible.builtin.assert:
+        that:
+          - "'5432' in ss_output.stdout"
+        fail_msg: "Port 5432 is not bound"
+
+    - name: Assert port 5432 is NOT bound to 0.0.0.0
+      ansible.builtin.assert:
+        that:
+          - not (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432'))
+        fail_msg: "Port 5432 is bound to 0.0.0.0 (should be localhost only)"
+
+    - name: Check PostgreSQL version is 17
+      ansible.builtin.command: /usr/pgsql-17/bin/psql --version
+      register: pg_version_output
+      changed_when: false
+
+    - name: Assert PostgreSQL 17
+      ansible.builtin.assert:
+        that:
+          - "'17' in pg_version_output.stdout"
+        fail_msg: "PostgreSQL 17 is not installed"
+
+    - name: Read pg_hba.conf
+      ansible.builtin.slurp:
+        src: /var/lib/pgsql/17/data/pg_hba.conf
+      register: pg_hba_content
+
+    - name: Assert scram-sha-256 is in pg_hba.conf
+      ansible.builtin.assert:
+        that:
+          - "'scram-sha-256' in (pg_hba_content.content | b64decode)"
+        fail_msg: "scram-sha-256 not found in pg_hba.conf"
+
+    - name: Check test database exists
+      ansible.builtin.command: >
+        /usr/pgsql-17/bin/psql -U postgres -tAc
+        "SELECT 1 FROM pg_database WHERE datname='testapp_db';"
+      become: true
+      become_user: postgres
+      register: db_check
+      changed_when: false
+
+    - name: Assert testapp_db exists
+      ansible.builtin.assert:
+        that:
+          - "db_check.stdout | trim == '1'"
+        fail_msg: "testapp_db database does not exist"
+
+    - name: Check test user exists
+      ansible.builtin.command: >
+        /usr/pgsql-17/bin/psql -U postgres -tAc
+        "SELECT 1 FROM pg_roles WHERE rolname='testapp_user';"
+      become: true
+      become_user: postgres
+      register: user_check
+      changed_when: false
+
+    - name: Assert testapp_user exists
+      ansible.builtin.assert:
+        that:
+          - "user_check.stdout | trim == '1'"
+        fail_msg: "testapp_user role does not exist"
+
+    - name: Read postgresql.conf
+      ansible.builtin.slurp:
+        src: /var/lib/pgsql/17/data/postgresql.conf
+      register: pg_conf_content
+
+    - name: Assert listen_addresses is localhost
+      ansible.builtin.assert:
+        that:
+          - "'listen_addresses' in (pg_conf_content.content | b64decode)"
+          - "'localhost' in (pg_conf_content.content | b64decode)"
+        fail_msg: "listen_addresses is not set to localhost in postgresql.conf"
+
+    - name: Assert archive_mode is on
+      ansible.builtin.assert:
+        that:
+          - "'archive_mode = on' in (pg_conf_content.content | b64decode)"
+        fail_msg: "archive_mode is not set to on in postgresql.conf"
