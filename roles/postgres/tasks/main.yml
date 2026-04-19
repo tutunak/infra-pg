@@ -16,7 +16,7 @@
   ansible.builtin.command:
     cmd: dnf module disable -y postgresql
   register: pg_module_disable
-  changed_when: "'Disabling' in pg_module_disable.stdout or 'disabled' in pg_module_disable.stdout"
+  changed_when: "'Disabling' in pg_module_disable.stdout"
   failed_when: pg_module_disable.rc != 0 and 'Nothing to do' not in pg_module_disable.stdout
 
 # --------------------------------------------------------------------------- #
