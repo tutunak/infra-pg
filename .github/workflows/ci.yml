@@ -1,0 +1,92 @@
+---
+name: CI
+
+"on":
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  molecule:
+    name: Molecule - ${{ matrix.scenario }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - postgres
+          - pgbouncer
+          - walg
+          - firewall
+          - integration
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: >-
+            pip-${{ runner.os }}-${{
+            hashFiles('**/requirements*.txt', '.github/workflows/ci.yml') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
+
+      - name: Install Ansible, Molecule, and dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            ansible \
+            ansible-lint \
+            molecule \
+            "molecule-plugins[podman]" \
+            ansible-core
+
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y podman
+
+      - name: Configure cgroupv2 for systemd containers
+        run: |
+          sudo mkdir -p /etc/systemd/system/user@.service.d
+          sudo tee \
+            /etc/systemd/system/user@.service.d/delegate.conf \
+            > /dev/null <<'DELEGATEEOF'
+          [Service]
+          Delegate=yes
+          DELEGATEEOF
+          sudo systemctl daemon-reload
+          sudo usermod \
+            --add-subuids 100000-165535 \
+            --add-subgids 100000-165535 \
+            runner 2>/dev/null || true
+          podman system migrate || true
+
+      - name: Run Molecule tests (per-role scenarios)
+        if: matrix.scenario != 'integration'
+        working-directory: roles/${{ matrix.scenario }}
+        run: molecule test
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+
+      - name: Run Molecule tests (integration scenario)
+        if: matrix.scenario == 'integration'
+        run: molecule test -s integration
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"

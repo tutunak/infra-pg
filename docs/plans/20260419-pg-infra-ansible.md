@@ -245,12 +245,12 @@ ansible-playbook playbooks/restore.yml \
 **Files:**
 - Create: `.github/workflows/ci.yml`
 
-- [ ] write CI workflow triggered on push and PR to master
-- [ ] add Podman installation and cgroupv2 setup step for Ubuntu runners
-- [ ] matrix strategy: one job per role (`postgres`, `pgbouncer`, `walg`, `firewall`) + `integration`
-- [ ] each job: checkout, install Python + Ansible + Molecule + `molecule-plugins[podman]` + `ansible-lint`, run `molecule test`
-- [ ] cache pip dependencies for speed
-- [ ] verify workflow YAML is valid (`yamllint .github/workflows/ci.yml`)
+- [x] write CI workflow triggered on push and PR to master
+- [x] add Podman installation and cgroupv2 setup step for Ubuntu runners
+- [x] matrix strategy: one job per role (`postgres`, `pgbouncer`, `walg`, `firewall`) + `integration`
+- [x] each job: checkout, install Python + Ansible + Molecule + `molecule-plugins[podman]` + `ansible-lint`, run `molecule test`
+- [x] cache pip dependencies for speed
+- [x] verify workflow YAML is valid (`yamllint .github/workflows/ci.yml`)
 
 ### Task 9: Verify acceptance criteria
 - [ ] `ansible-inventory -i inventory/hosts.yml --list` succeeds
