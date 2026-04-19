@@ -1,0 +1,14 @@
+---
+# Override the private NIC name if it differs from the group default
+# pgbouncer_private_iface: "eth1"
+
+# List of application databases to create.
+# Each entry maps to a PostgreSQL database + user pair.
+# Passwords reference vault variables defined in vault.yml.
+pg_databases:
+  - name: app1_db
+    owner: app1_user
+    password: "{{ vault_app1_user_password }}"
+  - name: app2_db
+    owner: app2_user
+    password: "{{ vault_app2_user_password }}"

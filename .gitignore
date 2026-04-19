@@ -1,0 +1,21 @@
+# Ansible retry files
+*.retry
+
+# Vault password file — never commit this
+.vault_pass
+
+# Logs
+*.log
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Molecule ephemeral state
+.molecule/
+
+# Editor temp files
+*.swp
+*.swo
+.DS_Store

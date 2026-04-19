@@ -1,0 +1,16 @@
+---
+# This file should be encrypted with ansible-vault before committing.
+# To encrypt: ansible-vault encrypt host_vars/example/vault.yml
+# To edit:    ansible-vault edit host_vars/example/vault.yml
+# To decrypt: ansible-vault decrypt host_vars/example/vault.yml
+
+# Application database passwords
+vault_app1_user_password: "CHANGE_ME"
+vault_app2_user_password: "CHANGE_ME"
+
+# WAL-G S3 / object-storage credentials
+vault_walg_s3_bucket:     "my-pg-backups"
+vault_walg_s3_endpoint:   "https://s3.example.com"
+vault_walg_s3_region:     "us-east-1"
+vault_walg_s3_access_key: "CHANGE_ME"
+vault_walg_s3_secret_key: "CHANGE_ME"

@@ -1,0 +1,24 @@
+---
+# PostgreSQL version
+pg_version: 17
+
+# Private subnet that app VMs reside on — used by firewall role
+pg_private_subnet: "10.0.0.0/24"
+
+# Name of the private network interface on the PG host
+# Override per host in host_vars/<host>/vars.yml if NIC name differs
+pgbouncer_private_iface: "eth1"
+
+# WAL-G release tag — pin a specific version for reproducibility
+walg_version: "v3.0.3"
+
+# Archive command injected into postgresql.conf by the postgres role.
+# Left empty here; the walg role sets this to the actual wal-push command.
+pg_archive_command: ""
+
+# S3 / object-storage credentials — values come from vault
+walg_s3_bucket:     "{{ vault_walg_s3_bucket }}"
+walg_s3_endpoint:   "{{ vault_walg_s3_endpoint }}"
+walg_s3_region:     "{{ vault_walg_s3_region }}"
+walg_s3_access_key: "{{ vault_walg_s3_access_key }}"
+walg_s3_secret_key: "{{ vault_walg_s3_secret_key }}"

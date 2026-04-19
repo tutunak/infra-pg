@@ -118,14 +118,14 @@ ansible-playbook playbooks/restore.yml \
 - Create: `.gitignore`
 - Create: `requirements.yml` (Ansible collections)
 
-- [ ] create `ansible.cfg` with `roles_path`, `inventory`, `collections_paths`, `vault_password_file` settings
-- [ ] create `inventory/hosts.yml` with example host grouped by `pg_servers`
-- [ ] create `group_vars/all.yml` with all shared variables including `walg_version`, `pgbouncer_private_iface`, `pg_archive_command`
-- [ ] create `host_vars/example/vars.yml` with `pg_databases` list example (including password references)
-- [ ] create `host_vars/example/vault.yml` with placeholder vault vars and comment explaining `ansible-vault encrypt`
-- [ ] create `.gitignore` (exclude `*.retry`, `.vault_pass`, `*.log`, `__pycache__`)
-- [ ] create `requirements.yml` listing collections: `community.postgresql`, `community.general`
-- [ ] verify scaffold: `ansible-inventory -i inventory/hosts.yml --list`
+- [x] create `ansible.cfg` with `roles_path`, `inventory`, `collections_paths`, `vault_password_file` settings
+- [x] create `inventory/hosts.yml` with example host grouped by `pg_servers`
+- [x] create `group_vars/all.yml` with all shared variables including `walg_version`, `pgbouncer_private_iface`, `pg_archive_command`
+- [x] create `host_vars/example/vars.yml` with `pg_databases` list example (including password references)
+- [x] create `host_vars/example/vault.yml` with placeholder vault vars and comment explaining `ansible-vault encrypt`
+- [x] create `.gitignore` (exclude `*.retry`, `.vault_pass`, `*.log`, `__pycache__`)
+- [x] create `requirements.yml` listing collections: `community.postgresql`, `community.general`
+- [x] verify scaffold: `ansible-inventory -i inventory/hosts.yml --list`
 
 ### Task 2: `postgres` role
 
