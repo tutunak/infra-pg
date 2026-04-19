@@ -67,7 +67,7 @@
     # ------------------------------------------------------------------ #
     - name: Append new database entry to pg_databases for PgBouncer
       ansible.builtin.set_fact:
-        pg_databases: "{{ (pg_databases | default([])) + [_new_db] }}"
+        pg_databases: "{{ (pg_databases | default([])) | rejectattr('name', 'equalto', db_name) | list + [_new_db] }}"
 
     - name: Gather network facts for PgBouncer template
       ansible.builtin.setup:

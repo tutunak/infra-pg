@@ -17,8 +17,9 @@ pgbouncer_private_iface: "eth1"
 walg_version: "v3.0.3"
 
 # Archive command injected into postgresql.conf by the postgres role.
-# Left empty here; the walg role sets this to the actual wal-push command.
-pg_archive_command: ""
+# Set here so the postgres template picks up the correct value on every run,
+# avoiding idempotency failures from the walg role patching the file post-template.
+pg_archive_command: "set -a; source /etc/wal-g/env; set +a && /usr/local/bin/wal-g wal-push %p"
 
 # S3 / object-storage credentials — values come from vault
 walg_s3_bucket:     "{{ vault_walg_s3_bucket }}"

@@ -14,8 +14,22 @@
     state: started
 
 # --------------------------------------------------------------------------- #
-# 2. Internal zone — allow PgBouncer from private subnet
+# 2. Internal zone — assign private interface and allow PgBouncer from subnet
 # --------------------------------------------------------------------------- #
+- name: Assign private interface to internal zone (permanent)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_internal_zone }}"
+    interface: "{{ pgbouncer_private_iface }}"
+    permanent: true
+    state: enabled
+
+- name: Assign private interface to internal zone (runtime)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_internal_zone }}"
+    interface: "{{ pgbouncer_private_iface }}"
+    immediate: true
+    state: enabled
+
 - name: Add rich rule to allow TCP 6432 from private subnet (permanent)
   ansible.posix.firewalld:
     zone: "{{ firewall_internal_zone }}"

@@ -2,11 +2,15 @@
 # --------------------------------------------------------------------------- #
 # 1. PGDG repository (already installed by postgres role; idempotent if run alone)
 # --------------------------------------------------------------------------- #
+- name: Import PGDG GPG key
+  ansible.builtin.rpm_key:
+    key: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+    state: present
+
 - name: Install PGDG repository RPM
   ansible.builtin.dnf:
     name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
     state: present
-    disable_gpg_check: true
 
 # --------------------------------------------------------------------------- #
 # 2. Install PgBouncer
@@ -15,6 +19,23 @@
   ansible.builtin.dnf:
     name: pgbouncer
     state: present
+
+- name: Check installed PgBouncer version
+  ansible.builtin.command: pgbouncer --version
+  register: pgbouncer_version_out
+  changed_when: false
+
+- name: Extract PgBouncer version string
+  ansible.builtin.set_fact:
+    pgbouncer_installed_version: "{{ pgbouncer_version_out.stdout | regex_search('(\\d+\\.\\d+\\.\\d+)', '\\1') | first }}"
+
+- name: Assert PgBouncer meets minimum version for SCRAM-SHA-256
+  ansible.builtin.assert:
+    that:
+      - pgbouncer_installed_version is version(pgbouncer_min_version, '>=')
+    fail_msg: >
+      PgBouncer {{ pgbouncer_installed_version }} is below the minimum required version
+      {{ pgbouncer_min_version }} (needed for scram-sha-256 auth_type).
 
 # --------------------------------------------------------------------------- #
 # 3. Gather facts for private interface IP

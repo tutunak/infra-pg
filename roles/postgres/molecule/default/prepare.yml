@@ -13,11 +13,15 @@
       changed_when: false
       failed_when: false
 
+    - name: Import PGDG GPG key
+      ansible.builtin.rpm_key:
+        key: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+        state: present
+
     - name: Install PGDG repository RPM
       ansible.builtin.dnf:
         name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
         state: present
-        disable_gpg_check: true
 
     - name: Disable built-in PostgreSQL module
       ansible.builtin.command:

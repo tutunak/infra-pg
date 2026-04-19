@@ -13,7 +13,7 @@
     walg_needs_install: >-
       {{
         walg_installed_version.rc != 0
-        or walg_version not in (walg_installed_version.stdout | default(''))
+        or not (walg_installed_version.stdout | default('')) is search(walg_version + '(\\s|$)')
       }}
 
 - name: Download WAL-G binary
@@ -46,24 +46,7 @@
     mode: "0600"
 
 # --------------------------------------------------------------------------- #
-# 3. Set pg_archive_command fact and update postgresql.conf
-# --------------------------------------------------------------------------- #
-- name: Set pg_archive_command fact
-  ansible.builtin.set_fact:
-    pg_archive_command: "set -a; source {{ walg_config_dir }}/env; set +a && {{ walg_install_path }} wal-push %p"
-
-- name: Update archive_command in postgresql.conf
-  ansible.builtin.lineinfile:
-    path: "{{ pg_data_dir }}/postgresql.conf"
-    regexp: "^archive_command\\s*="
-    line: "archive_command = 'set -a; source {{ walg_config_dir }}/env; set +a && {{ walg_install_path }} wal-push %p'"
-    owner: postgres
-    group: postgres
-    mode: "0600"
-  notify: Reload postgresql
-
-# --------------------------------------------------------------------------- #
-# 4. Systemd service and timer for nightly backups
+# 3. Systemd service and timer for nightly backups
 # --------------------------------------------------------------------------- #
 - name: Template walg-backup.service
   ansible.builtin.template:
@@ -72,7 +55,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Reload systemd
+  register: walg_service_unit
 
 - name: Template walg-backup.timer
   ansible.builtin.template:
@@ -81,10 +64,12 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Reload systemd
+  register: walg_timer_unit
 
-- name: Flush handlers to reload systemd before enabling timer
-  ansible.builtin.meta: flush_handlers
+- name: Reload systemd daemon when unit files changed
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: walg_service_unit is changed or walg_timer_unit is changed
 
 - name: Enable and start walg-backup.timer
   ansible.builtin.service:

@@ -38,6 +38,15 @@
         fail_msg: >
           restore_time is required. Pass -e "restore_time='YYYY-MM-DD HH:MM:SS'"
 
+    - name: Assert pg_data_dir is defined and safe
+      ansible.builtin.assert:
+        that:
+          - pg_data_dir is defined
+          - pg_data_dir | length > 10
+        fail_msg: >
+          pg_data_dir is undefined or suspiciously short (got: '{{ pg_data_dir | default('') }}').
+          Refusing to wipe an unintended directory.
+
   tasks:
     # ------------------------------------------------------------------ #
     # 1. Stop backup timer and PostgreSQL
@@ -46,6 +55,7 @@
       ansible.builtin.service:
         name: walg-backup.timer
         state: stopped
+      failed_when: false
 
     - name: Stop postgresql-{{ pg_version }} service
       ansible.builtin.service:
