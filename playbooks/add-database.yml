@@ -41,6 +41,7 @@
         password: "{{ db_password }}"
         state: present
         login_user: postgres
+      become: true
       become_user: postgres
       no_log: true
 
@@ -50,9 +51,10 @@
         owner: "{{ db_owner }}"
         state: present
         login_user: postgres
+      become: true
       become_user: postgres
 
-    - name: Grant ALL privileges on {{ db_name }} to {{ db_owner }}
+    - name: Grant ALL privileges on database {{ db_name }}
       community.postgresql.postgresql_privs:
         db: "{{ db_name }}"
         roles: "{{ db_owner }}"
@@ -60,6 +62,7 @@
         privs: ALL
         state: present
         login_user: postgres
+      become: true
       become_user: postgres
 
     # ------------------------------------------------------------------ #
@@ -68,6 +71,7 @@
     - name: Append new database entry to pg_databases for PgBouncer
       ansible.builtin.set_fact:
         pg_databases: "{{ (pg_databases | default([])) | rejectattr('name', 'equalto', db_name) | list + [_new_db] }}"
+      no_log: true
 
     - name: Gather network facts for PgBouncer template
       ansible.builtin.setup:

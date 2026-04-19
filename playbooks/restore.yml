@@ -53,132 +53,229 @@
     # ------------------------------------------------------------------ #
     # 1. Stop backup timer and PostgreSQL
     # ------------------------------------------------------------------ #
-    - name: Stop walg-backup.timer to prevent backup interference during restore
-      ansible.builtin.service:
-        name: walg-backup.timer
-        state: stopped
-      failed_when: false
-
-    - name: Stop postgresql-{{ pg_version }} service
-      ansible.builtin.service:
-        name: "{{ pg_service }}"
-        state: stopped
-
-    # ------------------------------------------------------------------ #
-    # 2. Wipe data directory  *** DATA LOSS — confirmed above ***
-    # ------------------------------------------------------------------ #
-    - name: "[DESTRUCTIVE] Wipe PGDATA to prepare for restore"
-      ansible.builtin.file:
-        path: "{{ pg_data_dir }}"
-        state: absent
-
-    - name: Recreate empty PGDATA directory
-      ansible.builtin.file:
-        path: "{{ pg_data_dir }}"
-        state: directory
-        owner: postgres
-        group: postgres
-        mode: "0700"
-
-    # ------------------------------------------------------------------ #
-    # 3. Fetch latest backup via WAL-G
-    # ------------------------------------------------------------------ #
-    - name: Copy walg-restore.sh to target host
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../scripts/walg-restore.sh"
-        dest: /usr/local/bin/walg-restore.sh
-        owner: root
-        group: root
-        mode: "0755"
-
-    - name: Fetch latest WAL-G backup into PGDATA
+    # Query unit load state first so we can skip stop/disable when walg is not
+    # installed (LoadState=not-found), while still failing hard on real errors
+    # when the unit IS present but systemd refuses to stop it.
+    # Use systemctl show via command module: ansible.builtin.systemd requires at
+    # least one of state/enabled/masked/daemon_reload which makes query-only use
+    # fail validation in ansible-core 2.17+.
+    - name: Query walg-backup.timer load state  # noqa: command-instead-of-module
       ansible.builtin.command:
-        cmd: /usr/local/bin/walg-restore.sh
-      environment:
-        PGDATA: "{{ pg_data_dir }}"
-      become_user: postgres
-      changed_when: true
-
-    # ------------------------------------------------------------------ #
-    # 4. Write recovery settings (postgresql.auto.conf, recovery.signal)
-    # ------------------------------------------------------------------ #
-    - name: Write recovery settings into postgresql.auto.conf
-      ansible.builtin.blockinfile:
-        path: "{{ pg_data_dir }}/postgresql.auto.conf"
-        create: true
-        owner: postgres
-        group: postgres
-        mode: "0600"
-        marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
-        block: |
-          recovery_target_time = '{{ restore_time }}'
-          recovery_target_action = 'promote'
-
-    - name: Write recovery.signal to trigger PITR mode
-      ansible.builtin.copy:
-        dest: "{{ pg_data_dir }}/recovery.signal"
-        content: ""
-        owner: postgres
-        group: postgres
-        mode: "0600"
-
-    # ------------------------------------------------------------------ #
-    # 5. Start PostgreSQL — it will replay WAL up to restore_time
-    # ------------------------------------------------------------------ #
-    - name: Start postgresql-{{ pg_version }} service
-      ansible.builtin.service:
-        name: "{{ pg_service }}"
-        state: started
-
-  post_tasks:
-    # ------------------------------------------------------------------ #
-    # 6. Wait for recovery to complete (pg_is_in_recovery() → false)
-    # ------------------------------------------------------------------ #
-    - name: Wait for PostgreSQL to finish recovery and promote
-      community.postgresql.postgresql_query:
-        db: postgres
-        query: "SELECT pg_is_in_recovery()"
-        login_user: postgres
-      become_user: postgres
-      register: pg_recovery_check
+        cmd: systemctl show walg-backup.timer --property=LoadState --value
+      register: walg_timer_loadstate
+      changed_when: false
       failed_when: false
-      until: >-
-        pg_recovery_check.query_result is defined
-        and pg_recovery_check.query_result | length > 0
-        and not pg_recovery_check.query_result[0]['pg_is_in_recovery']
-      retries: 360
-      delay: 10
 
-    - name: Assert recovery completed successfully
-      ansible.builtin.assert:
-        that:
-          - pg_recovery_check.query_result is defined
-          - pg_recovery_check.query_result | length > 0
-          - not pg_recovery_check.query_result[0]['pg_is_in_recovery']
-        fail_msg: >
-          PostgreSQL did not complete recovery within the timeout (3600s).
-          Check PostgreSQL logs on {{ inventory_hostname }} for WAL replay errors.
-
-    # ------------------------------------------------------------------ #
-    # 7. Remove recovery settings from postgresql.auto.conf
-    # NOTE: recovery_target_time and recovery_target_action are
-    # postmaster-context parameters in PostgreSQL 17 and cannot be
-    # removed via ALTER SYSTEM RESET after server start. Use blockinfile
-    # with state: absent to remove the block we wrote in step 4.
-    # ------------------------------------------------------------------ #
-    - name: Remove recovery settings block from postgresql.auto.conf
-      ansible.builtin.blockinfile:
-        path: "{{ pg_data_dir }}/postgresql.auto.conf"
-        marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
-        state: absent
-
-    - name: Remove recovery.signal if still present after promotion
-      ansible.builtin.file:
-        path: "{{ pg_data_dir }}/recovery.signal"
-        state: absent
-
-    - name: Re-enable walg-backup.timer after restore
-      ansible.builtin.service:
+    - name: Stop and disable walg-backup.timer to prevent backup interference during restore
+      ansible.builtin.systemd:
         name: walg-backup.timer
-        state: started
-        enabled: true
+        state: stopped
+        enabled: false
+      when: (walg_timer_loadstate.stdout | trim) not in ['not-found', '']
+
+    # ------------------------------------------------------------------ #
+    # 2–8. Restore — wrapped in block/always so the backup timer is
+    #       re-enabled even if any restore step fails.
+    # ------------------------------------------------------------------ #
+    - name: Restore from WAL-G backup with guaranteed timer cleanup
+      block:
+        # -------------------------------------------------------------- #
+        # 2. Deploy restore scripts and run preflight BEFORE touching data
+        # -------------------------------------------------------------- #
+        - name: Copy walg-restore.sh to target host
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../scripts/walg-restore.sh"
+            dest: /usr/local/bin/walg-restore.sh
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Copy walg-wal-fetch.sh wrapper to target host
+          ansible.builtin.copy:
+            src: "{{ playbook_dir }}/../scripts/walg-wal-fetch.sh"
+            dest: /usr/local/bin/walg-wal-fetch.sh
+            owner: root
+            group: root
+            mode: "0755"
+
+        # Preflight: verify restore_time is a valid calendar date AND that
+        # an eligible base backup actually exists in storage BEFORE stopping
+        # PostgreSQL, wiping PGDATA, or interrupting any in-progress backup.
+        # This catches impossible dates (e.g. 2026-02-31), missing backups,
+        # and transient S3 failures without causing any data loss or downtime.
+        - name: Preflight — verify eligible base backup exists for restore_time
+          ansible.builtin.command:
+            cmd: /usr/local/bin/walg-restore.sh --check
+          environment:
+            RESTORE_TIME: "{{ restore_time }}"
+          become: true
+          become_user: postgres
+          changed_when: false
+
+        # Stop walg-backup.service only AFTER preflight succeeds. The service
+        # is Type=oneshot (backup-push), so an interrupted run is permanently
+        # lost — it will not be restarted automatically. Stopping it here
+        # (rather than before preflight) means that a failed preflight — bad
+        # restore_time, missing backup, S3 outage — never needlessly kills an
+        # in-progress backup job.
+        - name: Query walg-backup.service load state  # noqa: command-instead-of-module
+          ansible.builtin.command:
+            cmd: systemctl show walg-backup.service --property=LoadState --value
+          register: walg_service_loadstate
+          changed_when: false
+          failed_when: false
+
+        - name: Stop walg-backup.service to abort any in-progress backup before wiping PGDATA
+          ansible.builtin.systemd:
+            name: walg-backup.service
+            state: stopped
+          when: (walg_service_loadstate.stdout | trim) not in ['not-found', '']
+
+        # -------------------------------------------------------------- #
+        # 3. Stop PostgreSQL
+        # -------------------------------------------------------------- #
+        - name: Stop PostgreSQL service {{ pg_version }}
+          ansible.builtin.service:
+            name: "{{ pg_service }}"
+            state: stopped
+
+        # -------------------------------------------------------------- #
+        # 4. Wipe data directory  *** DATA LOSS — confirmed above ***
+        # -------------------------------------------------------------- #
+        - name: "[DESTRUCTIVE] Wipe PGDATA to prepare for restore"
+          ansible.builtin.file:
+            path: "{{ pg_data_dir }}"
+            state: absent
+
+        - name: Recreate empty PGDATA directory
+          ansible.builtin.file:
+            path: "{{ pg_data_dir }}"
+            state: directory
+            owner: postgres
+            group: postgres
+            mode: "0700"
+
+        # -------------------------------------------------------------- #
+        # 5. Fetch base backup via WAL-G
+        # -------------------------------------------------------------- #
+        - name: Fetch WAL-G base backup appropriate for restore_time into PGDATA
+          ansible.builtin.command:
+            cmd: /usr/local/bin/walg-restore.sh
+          environment:
+            PGDATA: "{{ pg_data_dir }}"
+            RESTORE_TIME: "{{ restore_time }}"
+          become: true
+          become_user: postgres
+          changed_when: true
+
+        # -------------------------------------------------------------- #
+        # 6. Write recovery settings (postgresql.auto.conf, recovery.signal)
+        # -------------------------------------------------------------- #
+        - name: Write recovery settings into postgresql.auto.conf
+          ansible.builtin.blockinfile:
+            path: "{{ pg_data_dir }}/postgresql.auto.conf"
+            create: true
+            owner: postgres
+            group: postgres
+            mode: "0600"
+            marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
+            block: |
+              recovery_target_time = '{{ restore_time }} UTC'
+              recovery_target_action = 'promote'
+              restore_command = '/usr/local/bin/walg-wal-fetch.sh %f %p'
+
+        - name: Write recovery.signal to trigger PITR mode
+          ansible.builtin.copy:
+            dest: "{{ pg_data_dir }}/recovery.signal"
+            content: ""
+            owner: postgres
+            group: postgres
+            mode: "0600"
+
+        # -------------------------------------------------------------- #
+        # 7. Start PostgreSQL — it will replay WAL up to restore_time
+        # -------------------------------------------------------------- #
+        - name: Start PostgreSQL service {{ pg_version }}
+          ansible.builtin.service:
+            name: "{{ pg_service }}"
+            state: started
+
+        # -------------------------------------------------------------- #
+        # 8. Wait for recovery to complete (pg_is_in_recovery() → false)
+        # -------------------------------------------------------------- #
+        - name: Wait for PostgreSQL to finish recovery and promote
+          community.postgresql.postgresql_query:
+            db: postgres
+            query: "SELECT pg_is_in_recovery()"
+            login_user: postgres
+          become: true
+          become_user: postgres
+          register: pg_recovery_check
+          failed_when: false
+          until: >-
+            pg_recovery_check.query_result is defined
+            and pg_recovery_check.query_result | length > 0
+            and not pg_recovery_check.query_result[0]['pg_is_in_recovery']
+          retries: 360
+          delay: 10
+
+        - name: Assert recovery completed successfully
+          ansible.builtin.assert:
+            that:
+              - pg_recovery_check.query_result is defined
+              - pg_recovery_check.query_result | length > 0
+              - not pg_recovery_check.query_result[0]['pg_is_in_recovery']
+            fail_msg: >
+              PostgreSQL did not complete recovery within the timeout (3600s).
+              Check PostgreSQL logs on {{ inventory_hostname }} for WAL replay errors.
+
+        # -------------------------------------------------------------- #
+        # 7. Remove recovery settings from postgresql.auto.conf
+        # NOTE: recovery_target_time and recovery_target_action are
+        # postmaster-context parameters in PostgreSQL 17 and cannot be
+        # removed via ALTER SYSTEM RESET after server start. Use blockinfile
+        # with state: absent to remove the block we wrote in step 6.
+        # -------------------------------------------------------------- #
+        - name: Remove recovery settings block from postgresql.auto.conf
+          ansible.builtin.blockinfile:
+            path: "{{ pg_data_dir }}/postgresql.auto.conf"
+            marker: "# {mark} ANSIBLE MANAGED RECOVERY SETTINGS"
+            state: absent
+
+        - name: Remove recovery.signal if still present after promotion
+          ansible.builtin.file:
+            path: "{{ pg_data_dir }}/recovery.signal"
+            state: absent
+
+      always:
+        # Re-enable the backup timer only when PostgreSQL is confirmed healthy
+        # (running and fully promoted out of recovery). If the restore failed
+        # mid-way — e.g. after recovery.signal was written but before promotion
+        # completed — we must NOT restart the timer: walg-backup.timer has
+        # Persistent=true, so a missed 02:00 UTC run would fire immediately and
+        # walg-backup.service (Requires=postgresql) would start PostgreSQL while
+        # recovery.signal is still on disk, running a backup against a cluster
+        # that is still replaying WAL.
+        # If PostgreSQL is not reachable or is still in recovery, the timer is
+        # left disabled; the operator must investigate and re-enable manually.
+        - name: Check whether PostgreSQL is healthy before re-enabling backup timer
+          community.postgresql.postgresql_query:
+            db: postgres
+            query: "SELECT pg_is_in_recovery()"
+            login_user: postgres
+          become: true
+          become_user: postgres
+          register: pg_timer_health_check
+          failed_when: false
+          ignore_errors: true
+
+        - name: Re-enable walg-backup.timer after successful restore
+          ansible.builtin.service:
+            name: walg-backup.timer
+            state: started
+            enabled: true
+          when: >-
+            (walg_timer_loadstate.stdout | trim) not in ['not-found', '']
+            and pg_timer_health_check.query_result is defined
+            and pg_timer_health_check.query_result | length > 0
+            and not pg_timer_health_check.query_result[0]['pg_is_in_recovery']
