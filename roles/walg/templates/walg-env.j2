@@ -1,8 +1,8 @@
 # WAL-G environment configuration — managed by Ansible (walg role)
 # Do not edit manually; changes will be overwritten.
 # Note: no 'export' prefix — file is loaded by both systemd EnvironmentFile
-# (which requires bare KEY=VALUE) and via 'source' in archive_command (which
-# also works with bare KEY=VALUE).
+# (which requires bare KEY=VALUE) and via 'set -a; source; set +a' in shell
+# scripts and archive_command (which auto-exports all sourced variables).
 WALG_S3_PREFIX="s3://{{ walg_s3_bucket }}/wal-g"
 AWS_ENDPOINT="{{ walg_s3_endpoint }}"
 AWS_REGION="{{ walg_s3_region }}"

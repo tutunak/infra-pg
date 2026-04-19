@@ -40,8 +40,13 @@
 
   tasks:
     # ------------------------------------------------------------------ #
-    # 1. Stop PostgreSQL
+    # 1. Stop backup timer and PostgreSQL
     # ------------------------------------------------------------------ #
+    - name: Stop walg-backup.timer to prevent backup interference during restore
+      ansible.builtin.service:
+        name: walg-backup.timer
+        state: stopped
+
     - name: Stop postgresql-{{ pg_version }} service
       ansible.builtin.service:
         name: "{{ pg_service }}"
@@ -153,3 +158,9 @@
       ansible.builtin.service:
         name: "{{ pg_service }}"
         state: reloaded
+
+    - name: Re-enable walg-backup.timer after restore
+      ansible.builtin.service:
+        name: walg-backup.timer
+        state: started
+        enabled: true

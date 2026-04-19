@@ -50,13 +50,13 @@
 # --------------------------------------------------------------------------- #
 - name: Set pg_archive_command fact
   ansible.builtin.set_fact:
-    pg_archive_command: "source {{ walg_config_dir }}/env && {{ walg_install_path }} wal-push %p"
+    pg_archive_command: "set -a; source {{ walg_config_dir }}/env; set +a && {{ walg_install_path }} wal-push %p"
 
 - name: Update archive_command in postgresql.conf
   ansible.builtin.lineinfile:
     path: "{{ pg_data_dir }}/postgresql.conf"
     regexp: "^archive_command\\s*="
-    line: "archive_command = 'source {{ walg_config_dir }}/env && {{ walg_install_path }} wal-push %p'"
+    line: "archive_command = 'set -a; source {{ walg_config_dir }}/env; set +a && {{ walg_install_path }} wal-push %p'"
     owner: postgres
     group: postgres
     mode: "0600"
