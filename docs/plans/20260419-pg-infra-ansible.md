@@ -180,14 +180,14 @@ ansible-playbook playbooks/restore.yml \
 - Create: `roles/walg/defaults/main.yml`
 - Create: `roles/walg/molecule/default/` (full scenario)
 
-- [ ] download WAL-G binary from GitHub releases using `walg_version` var, install to `/usr/local/bin/wal-g` (idempotent: skip if version matches)
-- [ ] create `/etc/wal-g/` directory, template `env` file with S3 credentials (mode 0600, owner postgres group)
-- [ ] set `pg_archive_command` fact to `'source /etc/wal-g/env && /usr/local/bin/wal-g wal-push %p'` and notify `Reload postgresql` handler — **do NOT edit postgresql.conf directly; the postgres role template reads `pg_archive_command` variable**
-- [ ] create systemd `walg-backup.service` (runs `wal-g backup-push $PGDATA`, `EnvironmentFile=/etc/wal-g/env`) and `walg-backup.timer` (nightly 02:00 UTC)
-- [ ] enable `walg-backup.timer`
-- [ ] write full Molecule scenario with `privileged: true`, `tmpfs: [/run, /tmp]`
-- [ ] `verify.yml`: wal-g binary exists and is executable, `/etc/wal-g/env` present with mode 0600, timer unit enabled, `archive_command` in `postgresql.conf` contains `wal-g`
-- [ ] run `molecule test` — must pass including idempotency
+- [x] download WAL-G binary from GitHub releases using `walg_version` var, install to `/usr/local/bin/wal-g` (idempotent: skip if version matches)
+- [x] create `/etc/wal-g/` directory, template `env` file with S3 credentials (mode 0600, owner postgres group)
+- [x] set `pg_archive_command` fact to `'source /etc/wal-g/env && /usr/local/bin/wal-g wal-push %p'` and notify `Reload postgresql` handler — **do NOT edit postgresql.conf directly; the postgres role template reads `pg_archive_command` variable**
+- [x] create systemd `walg-backup.service` (runs `wal-g backup-push $PGDATA`, `EnvironmentFile=/etc/wal-g/env`) and `walg-backup.timer` (nightly 02:00 UTC)
+- [x] enable `walg-backup.timer`
+- [x] write full Molecule scenario with `privileged: true`, `tmpfs: [/run, /tmp]`
+- [x] `verify.yml`: wal-g binary exists and is executable, `/etc/wal-g/env` present with mode 0600, timer unit enabled, `archive_command` in `postgresql.conf` contains `wal-g`
+- [x] run `molecule test` — must pass including idempotency
 
 ### Task 5: `firewall` role
 

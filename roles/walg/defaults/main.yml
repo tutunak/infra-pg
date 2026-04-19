@@ -1,0 +1,20 @@
+---
+# WAL-G release tag — pin a specific version
+walg_version: "v3.0.3"
+
+# Installation path for the wal-g binary
+walg_install_path: "/usr/local/bin/wal-g"
+
+# Directory for WAL-G configuration (env file, etc.)
+walg_config_dir: "/etc/wal-g"
+
+# S3 / object-storage settings — override via vault in production
+walg_s3_bucket: ""
+walg_s3_endpoint: ""
+walg_s3_region: "us-east-1"
+walg_s3_access_key: ""
+walg_s3_secret_key: ""
+
+# PostgreSQL data directory (must match postgres role)
+pg_version: 17
+pg_data_dir: "/var/lib/pgsql/{{ pg_version }}/data"

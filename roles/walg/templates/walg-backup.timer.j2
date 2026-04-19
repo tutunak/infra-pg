@@ -1,0 +1,12 @@
+# walg-backup.timer — managed by Ansible (walg role)
+# Do not edit manually; changes will be overwritten.
+[Unit]
+Description=Nightly WAL-G full backup timer
+Requires=walg-backup.service
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

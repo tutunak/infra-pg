@@ -1,0 +1,93 @@
+---
+# --------------------------------------------------------------------------- #
+# 1. Download and install WAL-G binary (idempotent: skip if version matches)
+# --------------------------------------------------------------------------- #
+- name: Check installed WAL-G version
+  ansible.builtin.command: "{{ walg_install_path }} --version"
+  register: walg_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Set fact — WAL-G needs install/update
+  ansible.builtin.set_fact:
+    walg_needs_install: >-
+      {{
+        walg_installed_version.rc != 0
+        or walg_version not in (walg_installed_version.stdout | default(''))
+      }}
+
+- name: Download WAL-G binary
+  ansible.builtin.get_url:
+    url: "https://github.com/wal-g/wal-g/releases/download/{{ walg_version }}/wal-g-pg-ubuntu-20.04-amd64"
+    dest: "{{ walg_install_path }}"
+    mode: "0755"
+    owner: root
+    group: root
+    force: true
+  when: walg_needs_install | bool
+
+# --------------------------------------------------------------------------- #
+# 2. Configuration directory and env file
+# --------------------------------------------------------------------------- #
+- name: Create WAL-G configuration directory
+  ansible.builtin.file:
+    path: "{{ walg_config_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0750"
+
+- name: Template WAL-G env file
+  ansible.builtin.template:
+    src: walg-env.j2
+    dest: "{{ walg_config_dir }}/env"
+    owner: postgres
+    group: postgres
+    mode: "0600"
+
+# --------------------------------------------------------------------------- #
+# 3. Set pg_archive_command fact and update postgresql.conf
+# --------------------------------------------------------------------------- #
+- name: Set pg_archive_command fact
+  ansible.builtin.set_fact:
+    pg_archive_command: "source {{ walg_config_dir }}/env && {{ walg_install_path }} wal-push %p"
+
+- name: Update archive_command in postgresql.conf
+  ansible.builtin.lineinfile:
+    path: "{{ pg_data_dir }}/postgresql.conf"
+    regexp: "^archive_command\\s*="
+    line: "archive_command = 'source {{ walg_config_dir }}/env && {{ walg_install_path }} wal-push %p'"
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  notify: Reload postgresql
+
+# --------------------------------------------------------------------------- #
+# 4. Systemd service and timer for nightly backups
+# --------------------------------------------------------------------------- #
+- name: Template walg-backup.service
+  ansible.builtin.template:
+    src: walg-backup.service.j2
+    dest: /etc/systemd/system/walg-backup.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Template walg-backup.timer
+  ansible.builtin.template:
+    src: walg-backup.timer.j2
+    dest: /etc/systemd/system/walg-backup.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Flush handlers to reload systemd before enabling timer
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start walg-backup.timer
+  ansible.builtin.service:
+    name: walg-backup.timer
+    enabled: true
+    state: started

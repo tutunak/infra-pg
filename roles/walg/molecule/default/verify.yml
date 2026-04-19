@@ -1,0 +1,81 @@
+---
+- name: Verify WAL-G role
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Check wal-g binary exists
+      ansible.builtin.stat:
+        path: /usr/local/bin/wal-g
+      register: walg_binary
+
+    - name: Assert wal-g binary exists and is executable
+      ansible.builtin.assert:
+        that:
+          - walg_binary.stat.exists
+          - walg_binary.stat.executable
+        fail_msg: "wal-g binary is missing or not executable at /usr/local/bin/wal-g"
+
+    - name: Check /etc/wal-g/env file exists
+      ansible.builtin.stat:
+        path: /etc/wal-g/env
+      register: walg_env_file
+
+    - name: Assert /etc/wal-g/env exists
+      ansible.builtin.assert:
+        that:
+          - walg_env_file.stat.exists
+        fail_msg: "/etc/wal-g/env file is missing"
+
+    - name: Assert /etc/wal-g/env has mode 0600
+      ansible.builtin.assert:
+        that:
+          - walg_env_file.stat.mode == '0600'
+        fail_msg: "/etc/wal-g/env has incorrect permissions (expected 0600, got {{ walg_env_file.stat.mode }})"
+
+    - name: Check walg-backup.timer is enabled
+      ansible.builtin.command: systemctl is-enabled walg-backup.timer
+      register: timer_enabled
+      changed_when: false
+      failed_when: false
+
+    - name: Assert walg-backup.timer is enabled
+      ansible.builtin.assert:
+        that:
+          - timer_enabled.stdout == 'enabled'
+        fail_msg: "walg-backup.timer is not enabled (got: {{ timer_enabled.stdout | default('not found') }})"
+
+    - name: Read postgresql.conf
+      ansible.builtin.slurp:
+        src: /var/lib/pgsql/17/data/postgresql.conf
+      register: pg_conf_content
+
+    - name: Assert archive_command contains wal-g
+      ansible.builtin.assert:
+        that:
+          - "'wal-g' in (pg_conf_content.content | b64decode)"
+        fail_msg: "archive_command does not contain 'wal-g' in postgresql.conf"
+
+    - name: Assert archive_command contains wal-push
+      ansible.builtin.assert:
+        that:
+          - "'wal-push' in (pg_conf_content.content | b64decode)"
+        fail_msg: "archive_command does not contain 'wal-push' in postgresql.conf"
+
+    - name: Read /etc/wal-g/env content
+      ansible.builtin.slurp:
+        src: /etc/wal-g/env
+      register: walg_env_content
+
+    - name: Assert WALG_S3_PREFIX is set in env file
+      ansible.builtin.assert:
+        that:
+          - "'WALG_S3_PREFIX' in (walg_env_content.content | b64decode)"
+        fail_msg: "WALG_S3_PREFIX is not set in /etc/wal-g/env"
+
+    - name: Assert AWS_ACCESS_KEY_ID is set in env file
+      ansible.builtin.assert:
+        that:
+          - "'AWS_ACCESS_KEY_ID' in (walg_env_content.content | b64decode)"
+        fail_msg: "AWS_ACCESS_KEY_ID is not set in /etc/wal-g/env"

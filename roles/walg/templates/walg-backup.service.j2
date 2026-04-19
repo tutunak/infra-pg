@@ -1,0 +1,15 @@
+# walg-backup.service — managed by Ansible (walg role)
+# Do not edit manually; changes will be overwritten.
+[Unit]
+Description=WAL-G full backup push to S3
+After=postgresql-{{ pg_version }}.service
+Requires=postgresql-{{ pg_version }}.service
+
+[Service]
+Type=oneshot
+User=postgres
+EnvironmentFile={{ walg_config_dir }}/env
+ExecStart={{ walg_install_path }} backup-push {{ pg_data_dir }}
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=walg-backup

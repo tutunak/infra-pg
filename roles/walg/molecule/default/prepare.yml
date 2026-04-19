@@ -1,0 +1,42 @@
+---
+- name: Prepare container for WAL-G testing
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Wait for systemd to be ready
+      ansible.builtin.command: systemctl is-system-running
+      register: systemd_status
+      until: systemd_status.stdout in ['running', 'degraded']
+      retries: 20
+      delay: 3
+      changed_when: false
+      failed_when: false
+
+    - name: Install PGDG repository RPM
+      ansible.builtin.dnf:
+        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+
+    - name: Disable built-in PostgreSQL module
+      ansible.builtin.command:
+        cmd: dnf module disable -y postgresql
+      register: pg_module_disable
+      changed_when: "'Disabling' in pg_module_disable.stdout"
+      failed_when: pg_module_disable.rc != 0 and 'Nothing to do' not in pg_module_disable.stdout
+
+    - name: Install Python psycopg2 and prerequisites
+      ansible.builtin.dnf:
+        name:
+          - python3-psycopg2
+          - python3
+        state: present
+
+    - name: Install iproute and net-tools for verification
+      ansible.builtin.dnf:
+        name:
+          - iproute
+          - net-tools
+          - wget
+        state: present
