@@ -1,0 +1,5 @@
+---
+# Run the full setup playbook against the integration container.
+# The container is placed in the pg_servers group via molecule.yml so that
+# setup.yml's "hosts: pg_servers" matches it.
+- import_playbook: ../../playbooks/setup.yml

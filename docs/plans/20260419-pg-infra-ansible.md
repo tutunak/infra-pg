@@ -234,11 +234,11 @@ ansible-playbook playbooks/restore.yml \
 - Create: `molecule/integration/converge.yml`
 - Create: `molecule/integration/verify.yml`
 
-- [ ] write `molecule.yml`: podman driver, `rockylinux/rockylinux:9`, `privileged: true`, `command: /usr/sbin/init`, `tmpfs: [/run, /tmp]`
-- [ ] write `prepare.yml`: install all prerequisites + create dummy private interface (`ip link add dummy0 type dummy && ip addr add 10.0.0.1/24 dev dummy0 && ip link set dummy0 up`); set `pgbouncer_private_iface: dummy0`
-- [ ] write `converge.yml`: runs `setup.yml` against the container
-- [ ] write `verify.yml`: PG running on `127.0.0.1:5432`, PgBouncer listening on `10.0.0.1:6432`, WAL-G binary + timer present, firewalld rules active, can connect through PgBouncer with test user credentials
-- [ ] run `molecule test -s integration` — must pass
+- [x] write `molecule.yml`: podman driver, `rockylinux/rockylinux:9`, `privileged: true`, `command: /usr/sbin/init`, `tmpfs: [/run, /tmp]`
+- [x] write `prepare.yml`: install all prerequisites + create dummy private interface (`ip link add dummy0 type dummy && ip addr add 10.0.0.1/24 dev dummy0 && ip link set dummy0 up`); set `pgbouncer_private_iface: dummy0`
+- [x] write `converge.yml`: runs `setup.yml` against the container
+- [x] write `verify.yml`: PG running on `127.0.0.1:5432`, PgBouncer listening on `10.0.0.1:6432`, WAL-G binary + timer present, firewalld rules active, can connect through PgBouncer with test user credentials
+- [x] run `molecule test -s integration` — must pass
 
 ### Task 8: GitHub Actions CI
 
