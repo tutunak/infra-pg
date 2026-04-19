@@ -253,13 +253,13 @@ ansible-playbook playbooks/restore.yml \
 - [x] verify workflow YAML is valid (`yamllint .github/workflows/ci.yml`)
 
 ### Task 9: Verify acceptance criteria
-- [ ] `ansible-inventory -i inventory/hosts.yml --list` succeeds
-- [ ] `ansible-playbook --syntax-check playbooks/setup.yml` passes
-- [ ] `ansible-playbook --syntax-check playbooks/add-database.yml` passes
-- [ ] `ansible-playbook --syntax-check playbooks/restore.yml` passes
-- [ ] `molecule test` passes for all four roles (idempotency verified in each)
-- [ ] `molecule test -s integration` passes
-- [ ] GitHub Actions workflow YAML passes yamllint
+- [x] `ansible-inventory -i inventory/hosts.yml --list` succeeds
+- [x] `ansible-playbook --syntax-check playbooks/setup.yml` passes
+- [x] `ansible-playbook --syntax-check playbooks/add-database.yml` passes
+- [x] `ansible-playbook --syntax-check playbooks/restore.yml` passes (requires -e "target_host=example ...")
+- [x] `molecule test` passes for all four roles (idempotency verified in each)
+- [x] `molecule test -s integration` passes
+- [x] GitHub Actions workflow YAML passes yamllint
 - [ ] README documents: prerequisites, vault setup, setup.yml quickstart, add-database usage, restore usage with confirmation flag
 
 ### Task 10: [Final] Documentation and cleanup
