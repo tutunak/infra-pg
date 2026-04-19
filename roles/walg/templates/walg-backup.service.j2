@@ -14,3 +14,4 @@ ExecStart={{ walg_install_path }} backup-push {{ pg_data_dir }}
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=walg-backup
+TimeoutStartSec=3600

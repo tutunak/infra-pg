@@ -155,12 +155,14 @@
         path: /etc/wal-g/env
       register: walg_env_stat
 
-    - name: Assert /etc/wal-g/env exists with mode 0600
+    - name: Assert /etc/wal-g/env exists with mode 0640 and owned by root
       ansible.builtin.assert:
         that:
           - walg_env_stat.stat.exists
-          - walg_env_stat.stat.mode == '0600'
-        fail_msg: "/etc/wal-g/env is missing or has wrong permissions"
+          - walg_env_stat.stat.mode == '0640'
+          - walg_env_stat.stat.pw_name == 'root'
+          - walg_env_stat.stat.gr_name == 'postgres'
+        fail_msg: "/etc/wal-g/env is missing or has wrong permissions (expected root:postgres 0640)"
 
     - name: Check walg-backup.timer is enabled
       ansible.builtin.command: systemctl is-enabled walg-backup.timer

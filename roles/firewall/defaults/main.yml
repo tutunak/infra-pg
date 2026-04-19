@@ -8,3 +8,7 @@ firewall_internal_zone: "internal"
 
 # Public zone name
 firewall_public_zone: "public"
+
+# Name of the private network interface assigned to the internal zone
+# Override in group_vars/all.yml or host_vars/<host>/vars.yml if NIC name differs
+pgbouncer_private_iface: "eth1"
