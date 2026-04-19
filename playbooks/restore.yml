@@ -1,0 +1,155 @@
+---
+# Point-in-time recovery playbook using WAL-G.
+#
+# DESTRUCTIVE — wipes PGDATA and restores from backup.
+# Requires explicit confirmation via extra var.
+#
+# Required extra vars:
+#   target_host      — inventory hostname to restore on
+#   restore_time     — target recovery time (UTC), e.g. "2026-04-18 14:30:00"
+#   restore_confirm  — must be set to exactly "yes" to proceed
+#
+# Example:
+#   ansible-playbook playbooks/restore.yml \
+#     -i inventory/hosts.yml \
+#     -e "target_host=myserver restore_time='2026-04-18 14:30:00' restore_confirm=yes"
+
+- name: Restore PostgreSQL from WAL-G backup (PITR)
+  hosts: "{{ target_host }}"
+  become: true
+  vars:
+    pg_service: "postgresql-{{ pg_version }}"
+
+  pre_tasks:
+    - name: Assert restore_confirm is 'yes'
+      ansible.builtin.assert:
+        that:
+          - restore_confirm is defined
+          - restore_confirm == 'yes'
+        fail_msg: >
+          Safety check failed. You must pass -e "restore_confirm=yes" to confirm
+          that you want to DESTROY the current PostgreSQL data and restore from backup.
+
+    - name: Assert restore_time is defined
+      ansible.builtin.assert:
+        that:
+          - restore_time is defined
+          - restore_time | length > 0
+        fail_msg: >
+          restore_time is required. Pass -e "restore_time='YYYY-MM-DD HH:MM:SS'"
+
+  tasks:
+    # ------------------------------------------------------------------ #
+    # 1. Stop PostgreSQL
+    # ------------------------------------------------------------------ #
+    - name: Stop postgresql-{{ pg_version }} service
+      ansible.builtin.service:
+        name: "{{ pg_service }}"
+        state: stopped
+
+    # ------------------------------------------------------------------ #
+    # 2. Wipe data directory  *** DATA LOSS — confirmed above ***
+    # ------------------------------------------------------------------ #
+    - name: "[DESTRUCTIVE] Wipe PGDATA to prepare for restore"
+      ansible.builtin.file:
+        path: "{{ pg_data_dir }}"
+        state: absent
+
+    - name: Recreate empty PGDATA directory
+      ansible.builtin.file:
+        path: "{{ pg_data_dir }}"
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: "0700"
+
+    # ------------------------------------------------------------------ #
+    # 3. Fetch latest backup via WAL-G
+    # ------------------------------------------------------------------ #
+    - name: Copy walg-restore.sh to target host
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../scripts/walg-restore.sh"
+        dest: /usr/local/bin/walg-restore.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Fetch latest WAL-G backup into PGDATA
+      ansible.builtin.command:
+        cmd: /usr/local/bin/walg-restore.sh
+      environment:
+        PGDATA: "{{ pg_data_dir }}"
+      become_user: postgres
+      changed_when: true
+
+    # ------------------------------------------------------------------ #
+    # 4. Write recovery settings (postgresql.auto.conf, recovery.signal)
+    # ------------------------------------------------------------------ #
+    - name: Write recovery_target_time to postgresql.auto.conf
+      ansible.builtin.copy:
+        dest: "{{ pg_data_dir }}/postgresql.auto.conf"
+        content: |
+          # Written by restore.yml — removed automatically after promotion
+          recovery_target_time = '{{ restore_time }}'
+          recovery_target_action = 'promote'
+        owner: postgres
+        group: postgres
+        mode: "0600"
+
+    - name: Write recovery.signal to trigger PITR mode
+      ansible.builtin.copy:
+        dest: "{{ pg_data_dir }}/recovery.signal"
+        content: ""
+        owner: postgres
+        group: postgres
+        mode: "0600"
+
+    # ------------------------------------------------------------------ #
+    # 5. Start PostgreSQL — it will replay WAL up to restore_time
+    # ------------------------------------------------------------------ #
+    - name: Start postgresql-{{ pg_version }} service
+      ansible.builtin.service:
+        name: "{{ pg_service }}"
+        state: started
+
+  post_tasks:
+    # ------------------------------------------------------------------ #
+    # 6. Wait for recovery to complete (pg_is_in_recovery() → false)
+    # ------------------------------------------------------------------ #
+    - name: Wait for PostgreSQL to finish recovery and promote
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: "SELECT pg_is_in_recovery()"
+        login_user: postgres
+      become_user: postgres
+      register: pg_recovery_check
+      until: not pg_recovery_check.query_result[0]['pg_is_in_recovery']
+      retries: 60
+      delay: 5
+
+    # ------------------------------------------------------------------ #
+    # 7. Remove recovery settings (ALTER SYSTEM RESET is idempotent)
+    # ------------------------------------------------------------------ #
+    - name: Remove recovery_target_time from postgresql.auto.conf
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: "ALTER SYSTEM RESET recovery_target_time"
+        login_user: postgres
+      become_user: postgres
+
+    - name: Remove recovery_target_action from postgresql.auto.conf
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: "ALTER SYSTEM RESET recovery_target_action"
+        login_user: postgres
+      become_user: postgres
+
+    - name: Remove recovery.signal if still present after promotion
+      ansible.builtin.file:
+        path: "{{ pg_data_dir }}/recovery.signal"
+        state: absent
+
+    - name: Reload PostgreSQL to apply reset auto.conf settings
+      ansible.builtin.service:
+        name: "{{ pg_service }}"
+        state: reloaded

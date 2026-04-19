@@ -1,0 +1,12 @@
+---
+# Full setup playbook — applies all four roles to pg_servers hosts.
+# Run with:
+#   ansible-playbook playbooks/setup.yml -i inventory/hosts.yml
+- name: Set up PostgreSQL infrastructure
+  hosts: pg_servers
+  become: true
+  roles:
+    - role: firewall
+    - role: postgres
+    - role: pgbouncer
+    - role: walg

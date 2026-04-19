@@ -212,9 +212,9 @@ ansible-playbook playbooks/restore.yml \
 - Create: `playbooks/restore.yml`
 - Create: `scripts/walg-restore.sh`
 
-- [ ] write `setup.yml`: applies all four roles in order (firewall → postgres → pgbouncer → walg) against `pg_servers` group
-- [ ] write `add-database.yml`: idempotent — create DB, create user with password, grant privileges, update pgbouncer `userlist.txt` and `pgbouncer.ini`, reload pgbouncer; takes `db_name`, `db_owner`, `db_password` as extra vars
-- [ ] write `restore.yml`:
+- [x] write `setup.yml`: applies all four roles in order (firewall → postgres → pgbouncer → walg) against `pg_servers` group
+- [x] write `add-database.yml`: idempotent — create DB, create user with password, grant privileges, update pgbouncer `userlist.txt` and `pgbouncer.ini`, reload pgbouncer; takes `db_name`, `db_owner`, `db_password` as extra vars
+- [x] write `restore.yml`:
   - pre-task: assert `restore_confirm == 'yes'` and `restore_time` is defined (fail with clear message if not)
   - stop `postgresql-17` service
   - wipe `PGDATA` (with warning comment in task name)
@@ -223,8 +223,8 @@ ansible-playbook playbooks/restore.yml \
   - write `recovery_target_time` to `postgresql.auto.conf` (not `postgresql.conf`)
   - start `postgresql-17` service
   - post-task: wait for PG to reach normal state (poll `pg_is_in_recovery()` until false), then remove `recovery_target_time` from `postgresql.auto.conf` via `ALTER SYSTEM RESET recovery_target_time`
-- [ ] write `scripts/walg-restore.sh`: `source /etc/wal-g/env && wal-g backup-fetch $PGDATA LATEST`
-- [ ] syntax-check all playbooks: `ansible-playbook --syntax-check playbooks/*.yml`
+- [x] write `scripts/walg-restore.sh`: `source /etc/wal-g/env && wal-g backup-fetch $PGDATA LATEST`
+- [x] syntax-check all playbooks: `ansible-playbook --syntax-check playbooks/*.yml`
 
 ### Task 7: Integration Molecule scenario
 

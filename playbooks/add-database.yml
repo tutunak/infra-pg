@@ -1,0 +1,101 @@
+---
+# Idempotent playbook to add a new database and user to an existing PG host,
+# and register it with PgBouncer.
+#
+# Required extra vars:
+#   db_name      — name of the new database
+#   db_owner     — PostgreSQL role/user that will own the database
+#   db_password  — password for the role
+#
+# Example:
+#   ansible-playbook playbooks/add-database.yml \
+#     -i inventory/hosts.yml \
+#     -e "db_name=myapp_db db_owner=myapp_user db_password=s3cr3t"
+
+- name: Add database and update PgBouncer
+  hosts: pg_servers
+  become: true
+  vars:
+    _new_db:
+      name: "{{ db_name }}"
+      owner: "{{ db_owner }}"
+      password: "{{ db_password }}"
+
+  pre_tasks:
+    - name: Assert required extra vars are provided
+      ansible.builtin.assert:
+        that:
+          - db_name is defined and db_name | length > 0
+          - db_owner is defined and db_owner | length > 0
+          - db_password is defined and db_password | length > 0
+        fail_msg: >
+          Required variables missing. Pass -e "db_name=... db_owner=... db_password=..."
+
+  tasks:
+    # ------------------------------------------------------------------ #
+    # PostgreSQL — create user and database (idempotent)
+    # ------------------------------------------------------------------ #
+    - name: Create PostgreSQL user {{ db_owner }}
+      community.postgresql.postgresql_user:
+        name: "{{ db_owner }}"
+        password: "{{ db_password }}"
+        state: present
+        login_user: postgres
+      become_user: postgres
+      no_log: true
+
+    - name: Create PostgreSQL database {{ db_name }}
+      community.postgresql.postgresql_db:
+        name: "{{ db_name }}"
+        owner: "{{ db_owner }}"
+        state: present
+        login_user: postgres
+      become_user: postgres
+
+    - name: Grant ALL privileges on {{ db_name }} to {{ db_owner }}
+      community.postgresql.postgresql_privs:
+        db: "{{ db_name }}"
+        roles: "{{ db_owner }}"
+        type: database
+        privs: ALL
+        state: present
+        login_user: postgres
+      become_user: postgres
+
+    # ------------------------------------------------------------------ #
+    # PgBouncer — append entry to pg_databases and regenerate configs
+    # ------------------------------------------------------------------ #
+    - name: Append new database entry to pg_databases for PgBouncer
+      ansible.builtin.set_fact:
+        pg_databases: "{{ (pg_databases | default([])) + [_new_db] }}"
+
+    - name: Gather network facts for PgBouncer template
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+      when: ansible_facts[pgbouncer_private_iface] is not defined
+
+    - name: Update pgbouncer.ini with new database
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../roles/pgbouncer/templates/pgbouncer.ini.j2"
+        dest: /etc/pgbouncer/pgbouncer.ini
+        owner: pgbouncer
+        group: pgbouncer
+        mode: "0640"
+      notify: Reload pgbouncer
+
+    - name: Update userlist.txt with new user
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../roles/pgbouncer/templates/userlist.txt.j2"
+        dest: /etc/pgbouncer/userlist.txt
+        owner: pgbouncer
+        group: pgbouncer
+        mode: "0600"
+      notify: Reload pgbouncer
+      no_log: true
+
+  handlers:
+    - name: Reload pgbouncer
+      ansible.builtin.service:
+        name: pgbouncer
+        state: reloaded
