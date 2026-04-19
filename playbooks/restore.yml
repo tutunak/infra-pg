@@ -289,3 +289,18 @@
             and pg_timer_health_check.query_result is defined
             and pg_timer_health_check.query_result | length > 0
             and not pg_timer_health_check.query_result[0]['pg_is_in_recovery']
+
+        - name: Warn when backup timer could not be re-enabled
+          ansible.builtin.debug:
+            msg: >
+              WARNING: walg-backup.timer was NOT re-enabled. PostgreSQL is
+              unreachable or still in recovery. Investigate PostgreSQL on
+              {{ inventory_hostname }} and re-enable the timer manually:
+              systemctl enable --now walg-backup.timer
+          when: >-
+            (walg_timer_loadstate.stdout | trim) not in ['not-found', '']
+            and (
+              pg_timer_health_check.query_result is not defined
+              or pg_timer_health_check.query_result | length == 0
+              or pg_timer_health_check.query_result[0]['pg_is_in_recovery']
+            )

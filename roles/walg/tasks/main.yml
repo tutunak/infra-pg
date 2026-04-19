@@ -33,7 +33,7 @@
   ansible.builtin.file:
     path: "{{ walg_config_dir }}"
     state: directory
-    owner: postgres
+    owner: root
     group: postgres
     mode: "0750"
 
@@ -41,9 +41,9 @@
   ansible.builtin.template:
     src: walg-env.j2
     dest: "{{ walg_config_dir }}/env"
-    owner: postgres
+    owner: root
     group: postgres
-    mode: "0600"
+    mode: "0640"
   no_log: true
 
 # --------------------------------------------------------------------------- #
