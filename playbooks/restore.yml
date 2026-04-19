@@ -30,13 +30,15 @@
           Safety check failed. You must pass -e "restore_confirm=yes" to confirm
           that you want to DESTROY the current PostgreSQL data and restore from backup.
 
-    - name: Assert restore_time is defined
+    - name: Assert restore_time is defined and valid
       ansible.builtin.assert:
         that:
           - restore_time is defined
           - restore_time | length > 0
+          - restore_time | regex_search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$')
         fail_msg: >
-          restore_time is required. Pass -e "restore_time='YYYY-MM-DD HH:MM:SS'"
+          restore_time is required and must match 'YYYY-MM-DD HH:MM:SS'.
+          Pass -e "restore_time='2026-04-18 14:30:00'"
 
     - name: Assert pg_data_dir is defined and safe
       ansible.builtin.assert:

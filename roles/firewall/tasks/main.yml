@@ -77,6 +77,20 @@
     immediate: true
     state: disabled
 
+- name: Ensure postgresql service is absent from public zone (permanent)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    service: postgresql
+    permanent: true
+    state: disabled
+
+- name: Ensure postgresql service is absent from public zone (runtime)
+  ansible.posix.firewalld:
+    zone: "{{ firewall_public_zone }}"
+    service: postgresql
+    immediate: true
+    state: disabled
+
 # --------------------------------------------------------------------------- #
 # 4. Public zone — ensure SSH remains open
 # --------------------------------------------------------------------------- #

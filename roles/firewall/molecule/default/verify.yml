@@ -54,3 +54,9 @@
         that:
           - "'ssh' in public_services.stdout"
         fail_msg: "SSH service is not present in the public zone"
+
+    - name: Assert postgresql service is absent from public zone
+      ansible.builtin.assert:
+        that:
+          - "'postgresql' not in public_services.stdout"
+        fail_msg: "postgresql service is exposed in the public zone (should be absent)"
