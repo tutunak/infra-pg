@@ -197,22 +197,23 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `molecule/integration/prepare.yml`
 - Modify: `molecule/integration/verify.yml`
 
-- [ ] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`; ensure `NET_ADMIN` and `SYS_ADMIN` capabilities are present
-- [ ] `prepare.yml` — full rewrite:
+- [x] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`; ensure `NET_ADMIN` and `SYS_ADMIN` capabilities are present; add `ANSIBLE_ROLES_PATH` env var to provisioner
+- [x] `prepare.yml` — full rewrite:
   - Keep `systemctl is-system-running` wait loop unchanged
   - Install PGDG apt signing key via `get_url` to `/usr/share/keyrings/pgdg.asc`
   - Add PGDG apt source via `apt_repository`
   - `apt` install prerequisites: `python3-psycopg2`, `python3`, `iproute2`, `net-tools`, `wget`, `ufw`, `dbus`
+  - Create pgbouncer group/user (needed since PGDG pgbouncer doesn't auto-create them in container)
   - Start dbus service (unchanged)
   - Keep dummy0 interface tasks unchanged (`modprobe dummy`, `ip link`, `ip addr`, `ip link set up`)
   - Remove all RPM/dnf tasks
-- [ ] `verify.yml` — update all RHEL-specific references:
-  - Service assertion: `postgresql-17.service` → `postgresql.service`
+- [x] `verify.yml` — update all RHEL-specific references:
+  - Service assertion: `postgresql-17.service` → `postgresql@17-main.service`
   - `pg_hba.conf` slurp src: `/var/lib/pgsql/17/data/pg_hba.conf` → `/etc/postgresql/17/main/pg_hba.conf`
   - `postgresql.conf` slurp src: `/var/lib/pgsql/17/data/postgresql.conf` → `/etc/postgresql/17/main/postgresql.conf`
   - All `psql` binary references: `/usr/pgsql-17/bin/psql` → `psql` (2 occurrences: DB check, pgbouncer connection check)
   - Firewall section: replace all `firewalld.service` assertions and `firewall-cmd` tasks with UFW equivalents matching Task 9 verify pattern
-- [ ] Run `molecule test` in `molecule/integration/` — confirm green
+- [x] Run `molecule test` in `molecule/integration/` — confirm green
 
 ---
 

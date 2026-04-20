@@ -7,7 +7,7 @@ driver:
 
 platforms:
   - name: pg-integration
-    image: docker.io/geerlingguy/docker-rockylinux9-ansible:latest
+    image: docker.io/geerlingguy/docker-ubuntu2404-ansible:latest
     command: /usr/lib/systemd/systemd
     privileged: true
     tmpfs:
@@ -23,6 +23,8 @@ platforms:
 
 provisioner:
   name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: "../../roles"
   config_options:
     defaults:
       callbacks_enabled: profile_tasks
