@@ -128,9 +128,9 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/walg/defaults/main.yml`
 - Modify: `roles/walg/templates/walg-backup.service.j2`
 
-- [ ] `defaults/main.yml`: change `walg_binary_name` default from `wal-g-pg-rhel9-amd64` to `wal-g-pg-ubuntu-24.04-amd64`; update comment listing binary names
-- [ ] `defaults/main.yml`: change `pg_data_dir` default from `/var/lib/pgsql/{{ pg_version }}/data` to `/var/lib/postgresql/{{ pg_version }}/main`
-- [ ] `walg-backup.service.j2`: change `After=postgresql-{{ pg_version }}.service` → `After=postgresql.service`; change `Requires=postgresql-{{ pg_version }}.service` → `Requires=postgresql.service`
+- [x] `defaults/main.yml`: change `walg_binary_name` default from `wal-g-pg-rhel9-amd64` to `wal-g-pg-ubuntu-24.04-amd64`; update comment listing binary names
+- [x] `defaults/main.yml`: change `pg_data_dir` default from `/var/lib/pgsql/{{ pg_version }}/data` to `/var/lib/postgresql/{{ pg_version }}/main`
+- [x] `walg-backup.service.j2`: change `After=postgresql-{{ pg_version }}.service` → `After=postgresql.service`; change `Requires=postgresql-{{ pg_version }}.service` → `Requires=postgresql.service`
 
 ---
 
