@@ -26,7 +26,7 @@
     - name: Assert SSH (port 22) is allowed
       ansible.builtin.assert:
         that:
-          - "'22' in ufw_status.stdout"
+          - "ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')"
         fail_msg: "UFW rule allowing SSH (port 22) not found"
 
     - name: Assert port 5432 is not in ALLOW rules

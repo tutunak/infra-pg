@@ -63,7 +63,7 @@
 # --------------------------------------------------------------------------- #
 - name: Enable and start postgresql
   ansible.builtin.service:
-    name: postgresql
+    name: "postgresql@{{ pg_version }}-main"
     enabled: true
     state: started
 
