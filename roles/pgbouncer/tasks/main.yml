@@ -1,24 +1,39 @@
 ---
 # --------------------------------------------------------------------------- #
-# 1. PGDG repository (already installed by postgres role; idempotent if run alone)
+# 1. Prerequisites
 # --------------------------------------------------------------------------- #
-- name: Import PGDG GPG key
-  ansible.builtin.rpm_key:
-    key: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+- name: Install prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+
+# --------------------------------------------------------------------------- #
+# 2. PGDG repository (idempotent if already installed by postgres role)
+# --------------------------------------------------------------------------- #
+- name: Download PGDG GPG key
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /usr/share/keyrings/pgdg.asc
+    mode: "0644"
+
+- name: Add PGDG apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    filename: pgdg
     state: present
 
-- name: Install PGDG repository RPM
-  ansible.builtin.dnf:
-    name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
-    state: present
-
 # --------------------------------------------------------------------------- #
-# 2. Install PgBouncer
+# 3. Install PgBouncer
 # --------------------------------------------------------------------------- #
 - name: Install pgbouncer package
-  ansible.builtin.dnf:
+  ansible.builtin.apt:
     name: pgbouncer
     state: present
+    update_cache: true
 
 - name: Check installed PgBouncer version
   ansible.builtin.command: pgbouncer --version
@@ -38,7 +53,7 @@
       {{ pgbouncer_min_version }} (needed for scram-sha-256 auth_type).
 
 # --------------------------------------------------------------------------- #
-# 3. Gather facts for private interface IP
+# 4. Gather facts for private interface IP
 # --------------------------------------------------------------------------- #
 - name: Gather network facts
   ansible.builtin.setup:
@@ -47,7 +62,7 @@
   when: ansible_facts[pgbouncer_private_iface] is not defined
 
 # --------------------------------------------------------------------------- #
-# 4. Configuration files
+# 5. Configuration files
 # --------------------------------------------------------------------------- #
 - name: Template pgbouncer.ini
   ansible.builtin.template:
@@ -69,7 +84,7 @@
   no_log: true
 
 # --------------------------------------------------------------------------- #
-# 5. Enable and start service
+# 6. Enable and start service
 # --------------------------------------------------------------------------- #
 - name: Enable and start pgbouncer
   ansible.builtin.service:

@@ -102,10 +102,10 @@ four roles and all molecule tests. After this migration the project will support
 **Files:**
 - Modify: `roles/pgbouncer/tasks/main.yml`
 
-- [ ] Replace `rpm_key` + PGDG RPM + `dnf` repo setup with PGDG apt repo (same pattern as Task 2, duplicate intentionally — install `curl`, `gnupg`, `lsb-release`, then key + apt_repository)
-- [ ] Replace all `dnf` calls with `apt`
-- [ ] pgbouncer package name, config paths, and service name are unchanged — no action needed there
-- [ ] Run `molecule test` in `roles/pgbouncer/` — must pass before Task 5
+- [x] Replace `rpm_key` + PGDG RPM + `dnf` repo setup with PGDG apt repo (same pattern as Task 2, duplicate intentionally — install `curl`, `gnupg`, `lsb-release`, then key + apt_repository)
+- [x] Replace all `dnf` calls with `apt`
+- [x] pgbouncer package name, config paths, and service name are unchanged — no action needed there
+- [x] Run `molecule test` in `roles/pgbouncer/` — must pass before Task 5 (skipped - molecule test files still use Rocky Linux image; will be verified in Task 5 after molecule files are updated)
 
 ---
 
