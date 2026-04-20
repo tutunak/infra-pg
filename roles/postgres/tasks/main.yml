@@ -1,48 +1,41 @@
 ---
 # --------------------------------------------------------------------------- #
-# 1. PGDG repository
+# 1. Prerequisites
 # --------------------------------------------------------------------------- #
-- name: Import PGDG GPG key
-  ansible.builtin.rpm_key:
-    key: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+- name: Install prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gnupg
+      - lsb-release
     state: present
-
-- name: Install PGDG repository RPM
-  ansible.builtin.dnf:
-    name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
-    state: present
-
-- name: Disable built-in PostgreSQL module
-  ansible.builtin.command:
-    cmd: dnf module disable -y postgresql
-  register: pg_module_disable
-  changed_when: "'Disabling' in pg_module_disable.stdout"
-  failed_when: pg_module_disable.rc != 0 and 'Nothing to do' not in pg_module_disable.stdout
+    update_cache: true
 
 # --------------------------------------------------------------------------- #
-# 2. Install packages
+# 2. PGDG repository
+# --------------------------------------------------------------------------- #
+- name: Download PGDG GPG key
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /usr/share/keyrings/pgdg.asc
+    mode: "0644"
+
+- name: Add PGDG apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    filename: pgdg
+    state: present
+
+# --------------------------------------------------------------------------- #
+# 3. Install packages
 # --------------------------------------------------------------------------- #
 - name: Install PostgreSQL {{ pg_version }} packages
-  ansible.builtin.dnf:
+  ansible.builtin.apt:
     name:
-      - "postgresql{{ pg_version }}-server"
-      - "postgresql{{ pg_version }}"
+      - "postgresql-{{ pg_version }}"
       - python3-psycopg2
     state: present
-
-# --------------------------------------------------------------------------- #
-# 3. Initialise the cluster (idempotent: skip if data dir already exists)
-# --------------------------------------------------------------------------- #
-- name: Check if PostgreSQL data directory is initialised
-  ansible.builtin.stat:
-    path: "{{ pg_data_dir }}/PG_VERSION"
-  register: pg_data_stat
-
-- name: Initialise PostgreSQL cluster
-  ansible.builtin.command:
-    cmd: "/usr/pgsql-{{ pg_version }}/bin/postgresql-{{ pg_version }}-setup initdb"
-  when: not pg_data_stat.stat.exists
-  changed_when: true
+    update_cache: true
 
 # --------------------------------------------------------------------------- #
 # 4. Configuration files
@@ -50,7 +43,7 @@
 - name: Template postgresql.conf
   ansible.builtin.template:
     src: postgresql.conf.j2
-    dest: "{{ pg_data_dir }}/postgresql.conf"
+    dest: "/etc/postgresql/{{ pg_version }}/main/postgresql.conf"
     owner: postgres
     group: postgres
     mode: "0600"
@@ -59,7 +52,7 @@
 - name: Template pg_hba.conf
   ansible.builtin.template:
     src: pg_hba.conf.j2
-    dest: "{{ pg_data_dir }}/pg_hba.conf"
+    dest: "/etc/postgresql/{{ pg_version }}/main/pg_hba.conf"
     owner: postgres
     group: postgres
     mode: "0600"
@@ -68,9 +61,9 @@
 # --------------------------------------------------------------------------- #
 # 5. Enable and start service
 # --------------------------------------------------------------------------- #
-- name: Enable and start postgresql-{{ pg_version }}
+- name: Enable and start postgresql
   ansible.builtin.service:
-    name: "postgresql-{{ pg_version }}"
+    name: postgresql
     enabled: true
     state: started
 

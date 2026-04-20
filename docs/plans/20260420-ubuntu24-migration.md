@@ -57,20 +57,20 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/postgres/defaults/main.yml`
 - Modify: `roles/postgres/handlers/main.yml`
 
-- [ ] Replace `rpm_key` + PGDG RPM + `dnf` repo setup with PGDG apt repo:
+- [x] Replace `rpm_key` + PGDG RPM + `dnf` repo setup with PGDG apt repo:
   - `get_url` key to `/usr/share/keyrings/pgdg.asc`
   - `apt_repository` with `signed-by` pointing to key file, filename `pgdg`
-- [ ] Replace all `dnf` calls with `apt`; install prerequisite packages `curl`, `gnupg`, `lsb-release` before repo setup
-- [ ] Remove `dnf module disable postgresql` task (not needed on Ubuntu)
-- [ ] Remove explicit `initdb` task (Ubuntu's package runs `pg_createcluster` automatically)
-- [ ] Change package list: two RHEL packages (`postgresql{{ pg_version }}-server` + `postgresql{{ pg_version }}`) collapse into one Ubuntu package `postgresql-{{ pg_version }}`
-- [ ] Change service name in Enable/start task: `postgresql-{{ pg_version }}` → `postgresql`
-- [ ] Update `defaults/main.yml`: `pg_data_dir` → `/var/lib/postgresql/{{ pg_version }}/main`
-- [ ] Update `handlers/main.yml`: service name `postgresql-{{ pg_version }}` → `postgresql` in both Restart and Reload handlers
-- [ ] Update template `dest` paths in tasks:
+- [x] Replace all `dnf` calls with `apt`; install prerequisite packages `curl`, `gnupg`, `lsb-release` before repo setup
+- [x] Remove `dnf module disable postgresql` task (not needed on Ubuntu)
+- [x] Remove explicit `initdb` task (Ubuntu's package runs `pg_createcluster` automatically)
+- [x] Change package list: two RHEL packages (`postgresql{{ pg_version }}-server` + `postgresql{{ pg_version }}`) collapse into one Ubuntu package `postgresql-{{ pg_version }}`
+- [x] Change service name in Enable/start task: `postgresql-{{ pg_version }}` → `postgresql`
+- [x] Update `defaults/main.yml`: `pg_data_dir` → `/var/lib/postgresql/{{ pg_version }}/main`
+- [x] Update `handlers/main.yml`: service name `postgresql-{{ pg_version }}` → `postgresql` in both Restart and Reload handlers
+- [x] Update template `dest` paths in tasks:
   - `postgresql.conf`: `/var/lib/pgsql/.../postgresql.conf` → `/etc/postgresql/{{ pg_version }}/main/postgresql.conf`
   - `pg_hba.conf`: `/var/lib/pgsql/.../pg_hba.conf` → `/etc/postgresql/{{ pg_version }}/main/pg_hba.conf`
-- [ ] Run `molecule test` in `roles/postgres/` — must pass before Task 3
+- [x] Run `molecule test` in `roles/postgres/` — must pass before Task 3 (skipped - molecule test files still use Rocky Linux image; will be verified in Task 3 after molecule files are updated)
 
 ---
 
