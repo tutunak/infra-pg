@@ -84,7 +84,7 @@
       ansible.builtin.template:
         src: "{{ playbook_dir }}/../roles/pgbouncer/templates/pgbouncer.ini.j2"
         dest: /etc/pgbouncer/pgbouncer.ini
-        owner: pgbouncer
+        owner: postgres
         group: pgbouncer
         mode: "0640"
       notify: Reload pgbouncer
@@ -93,7 +93,7 @@
       ansible.builtin.template:
         src: "{{ playbook_dir }}/../roles/pgbouncer/templates/userlist.txt.j2"
         dest: /etc/pgbouncer/userlist.txt
-        owner: pgbouncer
+        owner: postgres
         group: pgbouncer
         mode: "0600"
       notify: Reload pgbouncer
