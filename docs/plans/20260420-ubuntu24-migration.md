@@ -46,7 +46,7 @@ four roles and all molecule tests. After this migration the project will support
 **Files:**
 - Modify: `group_vars/all.yml`
 
-- [ ] Change `pg_data_dir` from `/var/lib/pgsql/{{ pg_version }}/data` to `/var/lib/postgresql/{{ pg_version }}/main`
+- [x] Change `pg_data_dir` from `/var/lib/pgsql/{{ pg_version }}/data` to `/var/lib/postgresql/{{ pg_version }}/main`
 
 ---
 

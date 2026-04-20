@@ -4,7 +4,7 @@ pg_version: 17
 
 # PostgreSQL data directory — must be defined here so standalone playbooks
 # (restore.yml, add-database.yml) can reference it without loading role defaults.
-pg_data_dir: "/var/lib/pgsql/{{ pg_version }}/data"
+pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
 
 # Private subnet that app VMs reside on — used by firewall role
 pg_private_subnet: "10.0.0.0/24"
