@@ -3,12 +3,6 @@
 # Override in group_vars/all.yml or host_vars
 pg_private_subnet: "10.0.0.0/24"
 
-# Firewalld zone where the rich rule is applied
-firewall_internal_zone: "internal"
-
-# Public zone name
-firewall_public_zone: "public"
-
-# Name of the private network interface assigned to the internal zone
+# Name of the private network interface used by pgbouncer role for listen address
 # Override in group_vars/all.yml or host_vars/<host>/vars.yml if NIC name differs
 pgbouncer_private_iface: "eth1"

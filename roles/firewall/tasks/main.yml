@@ -1,109 +1,42 @@
 ---
 # --------------------------------------------------------------------------- #
-# 1. Install and start firewalld
+# 1. Install UFW
 # --------------------------------------------------------------------------- #
-- name: Install firewalld and python3-firewall
-  ansible.builtin.dnf:
-    name:
-      - firewalld
-      - python3-firewall
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
     state: present
+    update_cache: true
 
-- name: Enable and start firewalld
+# --------------------------------------------------------------------------- #
+# 2. Enable UFW service
+# --------------------------------------------------------------------------- #
+- name: Enable and start ufw service
   ansible.builtin.service:
-    name: firewalld
+    name: ufw
     enabled: true
     state: started
 
 # --------------------------------------------------------------------------- #
-# 2. Internal zone — assign private interface and allow PgBouncer from subnet
+# 3. Configure firewall rules
 # --------------------------------------------------------------------------- #
-- name: Assign private interface to internal zone (permanent)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_internal_zone }}"
-    interface: "{{ pgbouncer_private_iface }}"
-    permanent: true
-    state: enabled
+- name: Set default incoming policy to deny
+  community.general.ufw:
+    default: deny
+    direction: incoming
 
-- name: Assign private interface to internal zone (runtime)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_internal_zone }}"
-    interface: "{{ pgbouncer_private_iface }}"
-    immediate: true
-    state: enabled
+- name: Allow SSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
 
-- name: Add rich rule to allow TCP 6432 from private subnet (permanent)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_internal_zone }}"
-    rich_rule: "rule family='ipv4' source address='{{ pg_private_subnet }}' port port='6432' protocol='tcp' accept"
-    permanent: true
-    state: enabled
+- name: Allow TCP 6432 from private subnet
+  community.general.ufw:
+    rule: allow
+    port: "6432"
+    proto: tcp
+    src: "{{ pg_private_subnet }}"
 
-- name: Add rich rule to allow TCP 6432 from private subnet (runtime)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_internal_zone }}"
-    rich_rule: "rule family='ipv4' source address='{{ pg_private_subnet }}' port port='6432' protocol='tcp' accept"
-    immediate: true
-    state: enabled
-
-# --------------------------------------------------------------------------- #
-# 3. Public zone — remove PostgreSQL and PgBouncer ports if present
-# --------------------------------------------------------------------------- #
-- name: Ensure port 5432 is absent from public zone (permanent)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    port: "5432/tcp"
-    permanent: true
-    state: disabled
-
-- name: Ensure port 5432 is absent from public zone (runtime)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    port: "5432/tcp"
-    immediate: true
-    state: disabled
-
-- name: Ensure port 6432 is absent from public zone (permanent)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    port: "6432/tcp"
-    permanent: true
-    state: disabled
-
-- name: Ensure port 6432 is absent from public zone (runtime)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    port: "6432/tcp"
-    immediate: true
-    state: disabled
-
-- name: Ensure postgresql service is absent from public zone (permanent)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    service: postgresql
-    permanent: true
-    state: disabled
-
-- name: Ensure postgresql service is absent from public zone (runtime)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    service: postgresql
-    immediate: true
-    state: disabled
-
-# --------------------------------------------------------------------------- #
-# 4. Public zone — ensure SSH remains open
-# --------------------------------------------------------------------------- #
-- name: Ensure SSH is allowed in public zone (permanent)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    service: ssh
-    permanent: true
-    state: enabled
-
-- name: Ensure SSH is allowed in public zone (runtime)
-  ansible.posix.firewalld:
-    zone: "{{ firewall_public_zone }}"
-    service: ssh
-    immediate: true
+- name: Enable UFW
+  community.general.ufw:
     state: enabled

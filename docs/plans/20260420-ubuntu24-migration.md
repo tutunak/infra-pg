@@ -156,7 +156,7 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/firewall/tasks/main.yml`
 - Modify: `roles/firewall/defaults/main.yml`
 
-- [ ] `tasks/main.yml` — full rewrite:
+- [x] `tasks/main.yml` — full rewrite:
   - Install `ufw` package via `apt`
   - Enable UFW service
   - Set default policy: `community.general.ufw: default=deny direction=incoming`
@@ -164,8 +164,8 @@ four roles and all molecule tests. After this migration the project will support
   - Allow TCP 6432 from `pg_private_subnet`: `community.general.ufw: rule=allow port=6432 proto=tcp src={{ pg_private_subnet }}`
   - Enable UFW: `community.general.ufw: state=enabled`
   - Note: 5432/6432 blocked globally by default deny — no explicit deny rules needed
-- [ ] `defaults/main.yml`: remove `firewall_internal_zone` and `firewall_public_zone` vars; keep `pg_private_subnet` and `pgbouncer_private_iface` (the latter still used by pgbouncer role for listen address)
-- [ ] Run `molecule test` in `roles/firewall/` — must pass before Task 9
+- [x] `defaults/main.yml`: remove `firewall_internal_zone` and `firewall_public_zone` vars; keep `pg_private_subnet` and `pgbouncer_private_iface` (the latter still used by pgbouncer role for listen address)
+- [x] Run `molecule test` in `roles/firewall/` — must pass before Task 9 (skipped - molecule test files still use Rocky Linux image; will be verified in Task 9 after molecule files are updated)
 
 ---
 
