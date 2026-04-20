@@ -1,7 +1,7 @@
 ---
 - name: Prepare container for PostgreSQL testing
   hosts: all
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: Wait for systemd to be ready
@@ -13,33 +13,37 @@
       changed_when: false
       failed_when: false
 
-    - name: Import PGDG GPG key
-      ansible.builtin.rpm_key:
-        key: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
+    - name: Install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gnupg
+          - lsb-release
         state: present
+        update_cache: true
 
-    - name: Install PGDG repository RPM
-      ansible.builtin.dnf:
-        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+    - name: Install PGDG apt signing key
+      ansible.builtin.get_url:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        dest: /usr/share/keyrings/pgdg.asc
+        mode: "0644"
+
+    - name: Add PGDG apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        filename: pgdg
         state: present
-
-    - name: Disable built-in PostgreSQL module
-      ansible.builtin.command:
-        cmd: dnf module disable -y postgresql
-      register: pg_module_disable
-      changed_when: "'Disabling' in pg_module_disable.stdout"
-      failed_when: pg_module_disable.rc != 0 and 'Nothing to do' not in pg_module_disable.stdout
 
     - name: Install Python psycopg2 and prerequisites
-      ansible.builtin.dnf:
+      ansible.builtin.apt:
         name:
           - python3-psycopg2
           - python3
         state: present
 
-    - name: Install iproute and net-tools for verification
-      ansible.builtin.dnf:
+    - name: Install iproute2 and net-tools for verification
+      ansible.builtin.apt:
         name:
-          - iproute
+          - iproute2
           - net-tools
         state: present

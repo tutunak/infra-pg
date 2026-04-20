@@ -1,6 +1,9 @@
 # postgresql.conf — managed by Ansible (postgres role)
 # Do not edit manually; changes will be overwritten.
 
+# Data directory (required on Ubuntu/Debian)
+data_directory = '{{ pg_data_dir }}'
+
 # Connection settings
 listen_addresses = '{{ pg_listen_addresses }}'
 port = 5432

@@ -81,19 +81,19 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/postgres/molecule/default/prepare.yml`
 - Modify: `roles/postgres/molecule/default/verify.yml`
 
-- [ ] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`
-- [ ] `prepare.yml`: replace dnf-based setup with apt:
+- [x] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`
+- [x] `prepare.yml`: replace dnf-based setup with apt:
   - `apt` module with `update_cache: true`
   - Install PGDG apt signing key via `get_url` to `/usr/share/keyrings/pgdg.asc`
   - Add PGDG apt source via `apt_repository`
   - `apt` install: `python3-psycopg2`, `iproute2`, `net-tools`
   - Remove `dnf module disable` task
-- [ ] `verify.yml`:
-  - Service assertion: `postgresql-17.service` → `postgresql.service`
+- [x] `verify.yml`:
+  - Service assertion: `postgresql-17.service` → `postgresql@17-main.service` (Ubuntu uses `postgresql@<ver>-<cluster>.service`; `postgresql.service` is a meta-service with state=exited)
   - All `psql` binary references: `/usr/pgsql-17/bin/psql` → `psql` (3 occurrences: version check, DB check, user check)
   - `pg_hba.conf` slurp src: `/var/lib/pgsql/17/data/pg_hba.conf` → `/etc/postgresql/17/main/pg_hba.conf`
   - `postgresql.conf` slurp src: `/var/lib/pgsql/17/data/postgresql.conf` → `/etc/postgresql/17/main/postgresql.conf`
-- [ ] Run `molecule test` in `roles/postgres/` — confirm green
+- [x] Run `molecule test` in `roles/postgres/` — confirm green
 
 ---
 
