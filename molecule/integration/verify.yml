@@ -124,7 +124,7 @@
         "host=10.0.0.1 port=6432 dbname=testapp_db user=testapp_user"
         -c "SELECT 1;"
       environment:
-        PGPASSWORD: "testpassword123"
+        PGPASSWORD: "{{ pg_databases[0].password }}"
       register: pgbouncer_connect
       changed_when: false
       failed_when: pgbouncer_connect.rc != 0
@@ -193,8 +193,7 @@
     - name: Assert port 6432 is allowed from private subnet
       ansible.builtin.assert:
         that:
-          - "'6432' in ufw_status.stdout"
-          - "'10.0.0.0/24' in ufw_status.stdout"
+          - "ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')"
         fail_msg: "UFW rule for port 6432 from 10.0.0.0/24 not found"
 
     - name: Assert SSH (22/OpenSSH) is allowed

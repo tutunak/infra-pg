@@ -19,8 +19,7 @@
     - name: Assert port 6432 is allowed from private subnet
       ansible.builtin.assert:
         that:
-          - "'6432' in ufw_status.stdout"
-          - "'10.0.0.0/24' in ufw_status.stdout"
+          - "ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')"
         fail_msg: "UFW rule allowing TCP 6432 from 10.0.0.0/24 not found"
 
     - name: Assert SSH (port 22) is allowed
