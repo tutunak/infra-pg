@@ -37,11 +37,11 @@
       register: pg_version_output
       changed_when: false
 
-    - name: Assert PostgreSQL 17
+    - name: Assert PostgreSQL {{ pg_version }}
       ansible.builtin.assert:
         that:
-          - "'17' in pg_version_output.stdout"
-        fail_msg: "PostgreSQL 17 is not installed"
+          - "'{{ pg_version }}' in pg_version_output.stdout"
+        fail_msg: "PostgreSQL {{ pg_version }} is not installed"
 
     - name: Read pg_hba.conf
       ansible.builtin.slurp:

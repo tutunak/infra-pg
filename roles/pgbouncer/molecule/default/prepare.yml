@@ -41,6 +41,21 @@
           - net-tools
         state: present
 
+    - name: Ensure postgres system group exists
+      ansible.builtin.group:
+        name: postgres
+        system: true
+        state: present
+
+    - name: Ensure postgres system user exists
+      ansible.builtin.user:
+        name: postgres
+        system: true
+        group: postgres
+        create_home: false
+        shell: /usr/sbin/nologin
+        state: present
+
     - name: Ensure pgbouncer system group exists
       ansible.builtin.group:
         name: pgbouncer
