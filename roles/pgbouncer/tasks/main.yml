@@ -96,11 +96,19 @@
 
 - name: Ensure pgbouncer pid directory exists
   ansible.builtin.file:
-    path: /var/run/pgbouncer
+    path: /run/pgbouncer
     state: directory
     owner: postgres
     group: pgbouncer
     mode: "0755"
+
+- name: Install tmpfiles.d entry for pgbouncer runtime directory
+  ansible.builtin.copy:
+    dest: /etc/tmpfiles.d/pgbouncer.conf
+    content: "d /run/pgbouncer 0755 postgres pgbouncer -\n"
+    owner: root
+    group: root
+    mode: "0644"
 
 # --------------------------------------------------------------------------- #
 # 7. Enable and start service

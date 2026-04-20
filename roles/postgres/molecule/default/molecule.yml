@@ -18,10 +18,11 @@ platforms:
 
 provisioner:
   name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: "../../roles"
   config_options:
     defaults:
       callbacks_enabled: profile_tasks
-      roles_path: /home/tutunak/projects/infra-pg/roles
   inventory:
     host_vars:
       pg-test:

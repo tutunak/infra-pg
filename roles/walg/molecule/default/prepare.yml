@@ -1,7 +1,7 @@
 ---
 - name: Prepare container for WAL-G testing
   hosts: all
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: Wait for systemd to be ready
@@ -30,12 +30,9 @@
 
     - name: Add PGDG apt repository
       ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/usr/share/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_lsb.codename }}-pgdg main"
+        repo: "deb [signed-by=/usr/share/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
         filename: pgdg
         state: present
-      vars:
-        ansible_lsb:
-          codename: noble
 
     - name: Install Python psycopg2 and prerequisites
       ansible.builtin.apt:

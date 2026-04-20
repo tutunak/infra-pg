@@ -32,5 +32,5 @@
     - name: Assert port 5432 is not in ALLOW rules
       ansible.builtin.assert:
         that:
-          - "'5432' not in ufw_status.stdout"
-        fail_msg: "Port 5432 appears in UFW rules (should be blocked by default deny)"
+          - not (ufw_status.stdout | regex_search('5432.*ALLOW'))
+        fail_msg: "Port 5432 appears in UFW ALLOW rules (should be blocked by default deny)"

@@ -92,9 +92,8 @@
     - name: Assert listen_addresses is localhost
       ansible.builtin.assert:
         that:
-          - "'listen_addresses' in (pg_conf_content.content | b64decode)"
-          - "'localhost' in (pg_conf_content.content | b64decode)"
-        fail_msg: "listen_addresses is not set to localhost in postgresql.conf"
+          - "pg_conf_content.content | b64decode | regex_search(\"listen_addresses\\\\s*=\\\\s*'localhost'\")"
+        fail_msg: "listen_addresses is not set to 'localhost' in postgresql.conf"
 
     - name: Assert archive_mode is on
       ansible.builtin.assert:
