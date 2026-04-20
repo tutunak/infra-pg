@@ -50,7 +50,7 @@
 
     - name: Read postgresql.conf
       ansible.builtin.slurp:
-        src: /var/lib/pgsql/17/data/postgresql.conf
+        src: /etc/postgresql/17/main/postgresql.conf
       register: pg_conf_content
 
     - name: Assert archive_command contains wal-g

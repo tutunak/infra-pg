@@ -142,11 +142,11 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/walg/molecule/default/converge.yml`
 - Modify: `roles/walg/molecule/default/verify.yml`
 
-- [ ] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`
-- [ ] `prepare.yml`: replace PGDG RPM + dnf with apt equivalents (key + apt_repository + `apt` install `python3-psycopg2`, `iproute2`, `net-tools`, `wget`); remove `dnf module disable`
-- [ ] `converge.yml`: change `pg_data_dir: "/var/lib/pgsql/17/data"` → `pg_data_dir: "/var/lib/postgresql/17/main"`
-- [ ] `verify.yml`: `postgresql.conf` slurp src: `/var/lib/pgsql/17/data/postgresql.conf` → `/etc/postgresql/17/main/postgresql.conf`
-- [ ] Run `molecule test` in `roles/walg/` — confirm green
+- [x] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`
+- [x] `prepare.yml`: replace PGDG RPM + dnf with apt equivalents (key + apt_repository + `apt` install `python3-psycopg2`, `iproute2`, `net-tools`, `wget`); remove `dnf module disable`
+- [x] `converge.yml`: change `pg_data_dir: "/var/lib/pgsql/17/data"` → `pg_data_dir: "/var/lib/postgresql/17/main"`
+- [x] `verify.yml`: `postgresql.conf` slurp src: `/var/lib/pgsql/17/data/postgresql.conf` → `/etc/postgresql/17/main/postgresql.conf`
+- [x] Run `molecule test` in `roles/walg/` — confirm green
 
 ---
 

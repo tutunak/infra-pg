@@ -5,7 +5,7 @@
 
   vars:
     pg_version: 17
-    pg_data_dir: "/var/lib/pgsql/17/data"
+    pg_data_dir: "/var/lib/postgresql/17/main"
     walg_s3_bucket: "test-bucket"
     walg_s3_endpoint: "http://localhost:9000"
     walg_s3_region: "us-east-1"
