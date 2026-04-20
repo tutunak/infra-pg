@@ -28,7 +28,8 @@
 - name: Allow SSH
   community.general.ufw:
     rule: allow
-    name: OpenSSH
+    port: "22"
+    proto: tcp
 
 - name: Allow TCP 6432 from private subnet
   community.general.ufw:

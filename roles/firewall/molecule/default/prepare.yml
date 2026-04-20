@@ -13,13 +13,13 @@
       changed_when: false
       failed_when: false
 
-    - name: Install firewalld and dbus
-      ansible.builtin.dnf:
+    - name: Install ufw and dbus
+      ansible.builtin.apt:
         name:
-          - firewalld
+          - ufw
           - dbus
-          - python3-firewall
         state: present
+        update_cache: true
 
     - name: Start dbus service
       ansible.builtin.service:

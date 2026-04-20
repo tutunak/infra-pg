@@ -176,17 +176,17 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/firewall/molecule/default/prepare.yml`
 - Modify: `roles/firewall/molecule/default/verify.yml`
 
-- [ ] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`; ensure `NET_ADMIN` capability is present (needed for UFW/iptables in container)
-- [ ] `prepare.yml`:
+- [x] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`; ensure `NET_ADMIN` capability is present (needed for UFW/iptables in container)
+- [x] `prepare.yml`:
   - Change `dnf` install of `firewalld`/`python3-firewall` → `apt` install of `ufw`
   - Change `dnf` install of `dbus` → `apt` install of `dbus` (service task unchanged)
-- [ ] `verify.yml` — full rewrite from firewall-cmd to UFW:
+- [x] `verify.yml` — full rewrite from firewall-cmd to UFW:
   - Run `ufw status verbose` and register output
   - Assert UFW is active (`Status: active` in output)
   - Assert `6432` ALLOW from `10.0.0.0/24` is present in output
   - Assert `22` or `OpenSSH` ALLOW is present in output
   - Assert `5432` does NOT appear in ALLOW rules
-- [ ] Run `molecule test` in `roles/firewall/` — confirm green
+- [x] Run `molecule test` in `roles/firewall/` — confirm green
 
 ---
 

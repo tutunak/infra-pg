@@ -7,7 +7,7 @@ driver:
 
 platforms:
   - name: firewall-test
-    image: docker.io/geerlingguy/docker-rockylinux9-ansible:latest
+    image: docker.io/geerlingguy/docker-ubuntu2404-ansible:latest
     command: /usr/lib/systemd/systemd
     privileged: true
     tmpfs:
@@ -24,6 +24,7 @@ provisioner:
   config_options:
     defaults:
       callbacks_enabled: profile_tasks
+      roles_path: /home/tutunak/projects/infra-pg/roles
 
 lint: |
   set -e
