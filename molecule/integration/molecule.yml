@@ -31,6 +31,7 @@ provisioner:
   inventory:
     host_vars:
       pg-integration:
+        pg_version: 17
         pgbouncer_private_iface: "dummy0"
         pg_databases:
           - name: testapp_db

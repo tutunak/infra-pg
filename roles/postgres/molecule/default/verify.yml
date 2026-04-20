@@ -8,12 +8,12 @@
     - name: Check postgresql service is running
       ansible.builtin.service_facts:
 
-    - name: Assert postgresql@17-main service is active
+    - name: Assert postgresql service is active
       ansible.builtin.assert:
         that:
-          - "'postgresql@17-main.service' in ansible_facts.services"
-          - "ansible_facts.services['postgresql@17-main.service']['state'] == 'running'"
-        fail_msg: "postgresql@17-main service is not running"
+          - "'postgresql@{{ pg_version }}-main.service' in ansible_facts.services"
+          - "ansible_facts.services['postgresql@{{ pg_version }}-main.service']['state'] == 'running'"
+        fail_msg: "postgresql@{{ pg_version }}-main service is not running"
 
     - name: Check port 5432 is bound to localhost only
       ansible.builtin.command: ss -tlnp
@@ -45,7 +45,7 @@
 
     - name: Read pg_hba.conf
       ansible.builtin.slurp:
-        src: /etc/postgresql/17/main/pg_hba.conf
+        src: "/etc/postgresql/{{ pg_version }}/main/pg_hba.conf"
       register: pg_hba_content
 
     - name: Assert scram-sha-256 is in pg_hba.conf
@@ -86,7 +86,7 @@
 
     - name: Read postgresql.conf
       ansible.builtin.slurp:
-        src: /etc/postgresql/17/main/postgresql.conf
+        src: "/etc/postgresql/{{ pg_version }}/main/postgresql.conf"
       register: pg_conf_content
 
     - name: Assert listen_addresses is localhost

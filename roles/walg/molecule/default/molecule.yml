@@ -26,6 +26,7 @@ provisioner:
   inventory:
     host_vars:
       walg-test:
+        pg_version: 17
         pg_databases:
           - name: testapp_db
             owner: testapp_user
