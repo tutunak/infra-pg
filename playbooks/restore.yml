@@ -18,7 +18,7 @@
   hosts: "{{ target_host }}"
   become: true
   vars:
-    pg_service: "postgresql"
+    pg_service: "postgresql@{{ pg_version }}-main"
 
   pre_tasks:
     - name: Assert restore_confirm is 'yes'

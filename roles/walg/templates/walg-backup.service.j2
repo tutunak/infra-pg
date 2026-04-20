@@ -2,8 +2,8 @@
 # Do not edit manually; changes will be overwritten.
 [Unit]
 Description=WAL-G full backup push to S3
-After=postgresql.service
-Requires=postgresql.service
+After=postgresql@{{ pg_version }}-main.service
+Requires=postgresql@{{ pg_version }}-main.service
 ConditionPathExists={{ walg_config_dir }}/env
 
 [Service]
