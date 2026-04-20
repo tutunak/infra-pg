@@ -222,7 +222,7 @@ four roles and all molecule tests. After this migration the project will support
 **Files:**
 - Modify: `playbooks/restore.yml`
 
-- [ ] Line 21: change `pg_service: "postgresql-{{ pg_version }}"` → `pg_service: "postgresql"`
+- [x] Line 21: change `pg_service: "postgresql-{{ pg_version }}"` → `pg_service: "postgresql"`
 
 ---
 
