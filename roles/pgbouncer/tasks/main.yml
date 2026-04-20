@@ -68,7 +68,7 @@
   ansible.builtin.template:
     src: pgbouncer.ini.j2
     dest: /etc/pgbouncer/pgbouncer.ini
-    owner: pgbouncer
+    owner: postgres
     group: pgbouncer
     mode: "0640"
   notify: Reload pgbouncer
@@ -77,14 +77,33 @@
   ansible.builtin.template:
     src: userlist.txt.j2
     dest: /etc/pgbouncer/userlist.txt
-    owner: pgbouncer
+    owner: postgres
     group: pgbouncer
     mode: "0600"
   notify: Reload pgbouncer
   no_log: true
 
 # --------------------------------------------------------------------------- #
-# 6. Enable and start service
+# 6. Ensure runtime directories exist
+# --------------------------------------------------------------------------- #
+- name: Ensure pgbouncer log directory exists
+  ansible.builtin.file:
+    path: /var/log/pgbouncer
+    state: directory
+    owner: postgres
+    group: pgbouncer
+    mode: "0750"
+
+- name: Ensure pgbouncer pid directory exists
+  ansible.builtin.file:
+    path: /var/run/pgbouncer
+    state: directory
+    owner: postgres
+    group: pgbouncer
+    mode: "0755"
+
+# --------------------------------------------------------------------------- #
+# 7. Enable and start service
 # --------------------------------------------------------------------------- #
 - name: Enable and start pgbouncer
   ansible.builtin.service:

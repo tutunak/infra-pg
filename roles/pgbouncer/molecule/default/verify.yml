@@ -54,8 +54,8 @@
           - "userlist_stat.stat.mode == '0600'"
         fail_msg: "userlist.txt does not have mode 0600 (actual: {{ userlist_stat.stat.mode }})"
 
-    - name: Assert userlist.txt is owned by pgbouncer
+    - name: Assert userlist.txt is owned by postgres
       ansible.builtin.assert:
         that:
-          - "userlist_stat.stat.pw_name == 'pgbouncer'"
-        fail_msg: "userlist.txt is not owned by pgbouncer user"
+          - "userlist_stat.stat.pw_name == 'postgres'"
+        fail_msg: "userlist.txt is not owned by postgres user"

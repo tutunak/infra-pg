@@ -115,10 +115,10 @@ four roles and all molecule tests. After this migration the project will support
 - Modify: `roles/pgbouncer/molecule/default/molecule.yml`
 - Modify: `roles/pgbouncer/molecule/default/prepare.yml`
 
-- [ ] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`
-- [ ] `prepare.yml`: replace PGDG RPM + dnf with apt equivalents (key + apt_repository + `apt` install `iproute2`, `net-tools`); keep dummy0 interface tasks unchanged
-- [ ] `verify.yml`: no changes needed — pgbouncer service name and config paths are the same on Ubuntu
-- [ ] Run `molecule test` in `roles/pgbouncer/` — confirm green
+- [x] `molecule.yml`: swap image to `docker.io/geerlingguy/docker-ubuntu2404-ansible`
+- [x] `prepare.yml`: replace PGDG RPM + dnf with apt equivalents (key + apt_repository + `apt` install `iproute2`, `net-tools`); keep dummy0 interface tasks unchanged
+- [x] `verify.yml`: updated ownership assertion (pgbouncer service runs as postgres on Ubuntu; userlist.txt owner changed to postgres)
+- [x] Run `molecule test` in `roles/pgbouncer/` — confirm green
 
 ---
 

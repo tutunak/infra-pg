@@ -1,7 +1,7 @@
 ---
 - name: Prepare container for PgBouncer testing
   hosts: all
-  gather_facts: false
+  gather_facts: true
 
   tasks:
     - name: Wait for systemd to be ready
@@ -13,21 +13,47 @@
       changed_when: false
       failed_when: false
 
-    - name: Import PGDG GPG key
-      ansible.builtin.rpm_key:
-        key: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
-        state: present
-
-    - name: Install PGDG repository RPM
-      ansible.builtin.dnf:
-        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
-        state: present
-
-    - name: Install iproute for dummy interface creation
-      ansible.builtin.dnf:
+    - name: Install prerequisite packages
+      ansible.builtin.apt:
         name:
-          - iproute
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: true
+
+    - name: Download PGDG apt signing key
+      ansible.builtin.get_url:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        dest: /usr/share/keyrings/pgdg.asc
+        mode: "0644"
+
+    - name: Add PGDG apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        filename: pgdg
+        state: present
+
+    - name: Install iproute2 and net-tools for dummy interface creation
+      ansible.builtin.apt:
+        name:
+          - iproute2
           - net-tools
+        state: present
+
+    - name: Ensure pgbouncer system group exists
+      ansible.builtin.group:
+        name: pgbouncer
+        system: true
+        state: present
+
+    - name: Ensure pgbouncer system user exists
+      ansible.builtin.user:
+        name: pgbouncer
+        system: true
+        group: pgbouncer
+        create_home: false
+        shell: /usr/sbin/nologin
         state: present
 
     - name: Load dummy kernel module
