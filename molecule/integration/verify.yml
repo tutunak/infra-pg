@@ -64,6 +64,7 @@
       ansible.builtin.command: >
         psql -U postgres -tAc
         "SELECT 1 FROM pg_database WHERE datname='testapp_db';"
+      become: true
       become_user: postgres
       register: db_check
       changed_when: false
