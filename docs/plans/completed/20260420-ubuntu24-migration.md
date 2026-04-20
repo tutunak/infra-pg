@@ -241,7 +241,7 @@ four roles and all molecule tests. After this migration the project will support
 
 ### Task 13: [Final] Move plan to completed
 
-- [ ] Move this plan to `docs/plans/completed/`
+- [x] Move this plan to `docs/plans/completed/`
 
 ## Post-Completion
 
