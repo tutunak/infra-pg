@@ -25,6 +25,10 @@
     group: root
     force: true
   when: walg_needs_install | bool
+  register: walg_download_result
+  retries: 3
+  delay: 10
+  until: walg_download_result is not failed
 
 # --------------------------------------------------------------------------- #
 # 2. Configuration directory and env file
