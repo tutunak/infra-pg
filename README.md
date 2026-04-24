@@ -50,9 +50,18 @@ python scripts/check_molecule_roles_path.py
 ansible-lint
 ```
 
+`ansible.cfg` sets `vault_password_file = .vault_pass`, so `ansible-lint` requires that
+file to exist. For lint-only runs you do not need a real vault password — a dummy file is
+enough:
+
+```
+echo "dummy" > .vault_pass
+```
+
 `check_molecule_roles_path.py` validates that `ANSIBLE_ROLES_PATH` is correct in every
 `molecule.yml`. A custom rule (`LOCAL001` in `.ansible-lint-rules/`) enforces that all
-`get_url` tasks include `retries` and `until`.
+`get_url` tasks include `retries` and `until` to make external downloads resilient
+to transient network errors.
 
 ## Vault setup
 

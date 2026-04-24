@@ -36,6 +36,4 @@ class GetUrlRetriesRule(AnsibleLintRule):
             return "get_url task is missing 'retries'"
         if "until" not in task.raw_task:
             return "get_url task has 'retries' but is missing 'until'"
-        if "delay" not in task.raw_task:
-            return "get_url task has 'retries' but is missing 'delay'"
         return False
