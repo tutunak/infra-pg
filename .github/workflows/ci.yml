@@ -26,7 +26,7 @@ jobs:
       - name: Install Ansible and ansible-lint
         run: |
           pip install --upgrade pip
-          pip install ansible ansible-lint
+          pip install ansible "ansible-lint~=26.4"
 
       - name: Create dummy vault password file
         run: echo "dummy" > .vault_pass
@@ -78,7 +78,7 @@ jobs:
           pip install --upgrade pip
           pip install \
             ansible \
-            ansible-lint \
+            "ansible-lint~=26.4" \
             molecule \
             "molecule-plugins[podman]"
 
