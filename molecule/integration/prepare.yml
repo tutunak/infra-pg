@@ -18,6 +18,10 @@
         url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
         dest: /usr/share/keyrings/pgdg.asc
         mode: "0644"
+      register: pgdg_key_download
+      retries: 3
+      delay: 5
+      until: pgdg_key_download is not failed
 
     - name: Add PGDG apt repository
       ansible.builtin.apt_repository:

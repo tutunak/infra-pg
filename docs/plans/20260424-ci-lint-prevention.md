@@ -86,12 +86,12 @@ Both checks run in a new `lint` CI job that gates the existing `molecule` jobs.
 
 All are PGDG GPG key downloads from `postgresql.org` — external HTTP calls that can fail transiently.
 
-- [ ] add `register`, `retries: 3`, `delay: 5`, `until: <result> is not failed` to `get_url` task in `roles/postgres/tasks/main.yml`
-- [ ] same for `roles/pgbouncer/tasks/main.yml`
-- [ ] same for `roles/postgres/molecule/default/prepare.yml`
-- [ ] same for `roles/pgbouncer/molecule/default/prepare.yml`
-- [ ] same for `roles/walg/molecule/default/prepare.yml`
-- [ ] same for `molecule/integration/prepare.yml`
+- [x] add `register`, `retries: 3`, `delay: 5`, `until: <result> is not failed` to `get_url` task in `roles/postgres/tasks/main.yml`
+- [x] same for `roles/pgbouncer/tasks/main.yml`
+- [x] same for `roles/postgres/molecule/default/prepare.yml`
+- [x] same for `roles/pgbouncer/molecule/default/prepare.yml`
+- [x] same for `roles/walg/molecule/default/prepare.yml`
+- [x] same for `molecule/integration/prepare.yml`
 
 ### Task 3: ansible-lint custom rule for get_url retries
 
