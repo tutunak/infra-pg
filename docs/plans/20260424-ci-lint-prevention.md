@@ -122,10 +122,10 @@ All are PGDG GPG key downloads from `postgresql.org` — external HTTP calls tha
 
 ### Task 5: Verify acceptance criteria
 
-- [ ] run `python scripts/check_molecule_roles_path.py` — exits 0
-- [ ] run `ansible-lint` — no `LOCAL001` violations
-- [ ] confirm CI YAML parses cleanly
-- [ ] confirm `molecule` job has `needs: lint`
+- [x] run `python scripts/check_molecule_roles_path.py` — exits 0
+- [x] run `ansible-lint` — no `LOCAL001` violations
+- [x] confirm CI YAML parses cleanly
+- [x] confirm `molecule` job has `needs: lint`
 
 ### Task 6: [Final] Wrap up
 
