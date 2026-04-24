@@ -184,15 +184,15 @@ Same root cause. Line 38 validates `restore_time` format but will raise a type e
 
 Each per-role target `cd`s into the role directory so molecule picks up the local `molecule.yml` (which already sets `ANSIBLE_ROLES_PATH` via `provisioner.env`). Integration target runs from project root.
 
-- [ ] Create `Makefile` with `.PHONY` declarations and `help` target (auto-generated from `##` comments)
-- [ ] Add `test-firewall` target: `cd roles/firewall && molecule test`
-- [ ] Add `test-postgres` target: `cd roles/postgres && molecule test`
-- [ ] Add `test-pgbouncer` target: `cd roles/pgbouncer && molecule test`
-- [ ] Add `test-walg` target: `cd roles/walg && molecule test`
-- [ ] Add `test-integration` target: `molecule test -s integration` (runs from project root)
-- [ ] Add `test-all` target: runs `test-firewall`, `test-postgres`, `test-pgbouncer`, `test-walg`, then `test-integration` in sequence
-- [ ] Add `lint` target: `yamllint . && ansible-lint`
-- [ ] Export `ANSIBLE_FORCE_COLOR=1` and `PY_COLORS=1` to match CI output
+- [x] Create `Makefile` with `.PHONY` declarations and `help` target (auto-generated from `##` comments)
+- [x] Add `test-firewall` target: `cd roles/firewall && molecule test`
+- [x] Add `test-postgres` target: `cd roles/postgres && molecule test`
+- [x] Add `test-pgbouncer` target: `cd roles/pgbouncer && molecule test`
+- [x] Add `test-walg` target: `cd roles/walg && molecule test`
+- [x] Add `test-integration` target: `molecule test -s integration` (runs from project root)
+- [x] Add `test-all` target: runs `test-firewall`, `test-postgres`, `test-pgbouncer`, `test-walg`, then `test-integration` in sequence
+- [x] Add `lint` target: `yamllint . && ansible-lint`
+- [x] Export `ANSIBLE_FORCE_COLOR=1` and `PY_COLORS=1` to match CI output
 
 ---
 
