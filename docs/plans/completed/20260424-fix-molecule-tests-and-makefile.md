@@ -208,8 +208,8 @@ Each per-role target `cd`s into the role directory so molecule picks up the loca
 
 ### Task 8: [Final] Update documentation
 
-- [ ] Update `README.md` to mention `make test-<role>` and `make test-all` for local testing
-- [ ] Move this plan to `docs/plans/completed/`
+- [x] Update `README.md` to mention `make test-<role>` and `make test-all` for local testing
+- [x] Move this plan to `docs/plans/completed/`
 
 ## Post-Completion
 

@@ -153,7 +153,44 @@ touched.
 
 ## Running Molecule tests
 
-Per-role tests (run from the repo root):
+A `Makefile` provides convenient targets for running tests locally before pushing.
+It exports `ANSIBLE_FORCE_COLOR=1` and `PY_COLORS=1` to match CI output.
+
+Run a single role:
+
+```
+make test-firewall
+make test-postgres
+make test-pgbouncer
+make test-walg
+```
+
+Run the integration scenario (all four roles together):
+
+```
+make test-integration
+```
+
+Run everything in sequence:
+
+```
+make test-all
+```
+
+Run the linter:
+
+```
+make lint
+```
+
+Show all available targets:
+
+```
+make help
+```
+
+If you prefer to invoke molecule directly, per-role tests must be run from inside
+the role directory so molecule picks up the local `molecule.yml`:
 
 ```
 cd roles/postgres  && molecule test
@@ -162,7 +199,7 @@ cd roles/walg      && molecule test
 cd roles/firewall  && molecule test
 ```
 
-Integration test (all four roles together):
+Integration test from the project root:
 
 ```
 molecule test -s integration
