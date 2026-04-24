@@ -9,7 +9,9 @@ if TYPE_CHECKING:
     from ansiblelint.file_utils import Lintable
     from ansiblelint.utils import Task
 
-_GET_URL_MODULES = {"get_url", "ansible.builtin.get_url"}
+# ansible-lint normalizes FQCNs to short names in __ansible_module__, so
+# "ansible.builtin.get_url" never appears — only "get_url" is needed here.
+_GET_URL_MODULES = {"get_url"}
 
 
 class GetUrlRetriesRule(AnsibleLintRule):
@@ -34,4 +36,6 @@ class GetUrlRetriesRule(AnsibleLintRule):
             return "get_url task is missing 'retries'"
         if "until" not in task.raw_task:
             return "get_url task has 'retries' but is missing 'until'"
+        if "delay" not in task.raw_task:
+            return "get_url task has 'retries' but is missing 'delay'"
         return False
