@@ -57,7 +57,11 @@ def check_molecule_file(mol_path: pathlib.Path):
 
 
 def main():
-    mol_files = sorted(REPO_ROOT.rglob("molecule.yml"))
+    _EXCLUDE = {".venv", "venv", ".tox", "site-packages", "__pycache__", ".cache"}
+    mol_files = sorted(
+        f for f in REPO_ROOT.rglob("molecule.yml")
+        if not any(part in _EXCLUDE or part.startswith(".") for part in f.parts[len(REPO_ROOT.parts):])
+    )
     if not mol_files:
         print("ERROR: no molecule.yml files found under", REPO_ROOT)
         sys.exit(1)
