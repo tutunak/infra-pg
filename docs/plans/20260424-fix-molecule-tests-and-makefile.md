@@ -198,11 +198,11 @@ Each per-role target `cd`s into the role directory so molecule picks up the loca
 
 ### Task 7: Verify all fixes
 
-- [ ] Run `make test-firewall` — must pass (verify step must complete green)
-- [ ] Run `make test-postgres` — must pass (verify step must complete green)
-- [ ] Run `make test-walg` — must pass (converge + verify must complete green)
-- [ ] Run `make test-pgbouncer` — must still pass (regression check)
-- [ ] Run `make test-integration` — must pass (converge + verify must complete green)
+- [x] Run `make test-firewall` — must pass (verify step must complete green)
+- [x] Run `make test-postgres` — must pass (verify step must complete green)
+- [x] Run `make test-walg` — must pass (converge + verify must complete green)
+- [x] Run `make test-pgbouncer` — must still pass (regression check)
+- [x] Run `make test-integration` — must pass (converge + verify must complete green)
 
 ---
 
