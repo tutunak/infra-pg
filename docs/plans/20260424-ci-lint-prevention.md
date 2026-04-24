@@ -114,11 +114,11 @@ All are PGDG GPG key downloads from `postgresql.org` — external HTTP calls tha
 **Files:**
 - Modify: `.github/workflows/ci.yml`
 
-- [ ] add `lint` job before the `molecule` job:
+- [x] add `lint` job before the `molecule` job:
   - `runs-on: ubuntu-24.04`
   - steps: checkout, python 3.12, `pip install ansible ansible-lint` (PyYAML comes with ansible, needed by path validator), `ansible-galaxy collection install -r requirements.yml` (needed so ansible-lint can resolve FQCNs from collections), `python scripts/check_molecule_roles_path.py`, `ansible-lint`
-- [ ] add `needs: lint` to the `molecule` job so it only runs after lint passes
-- [ ] verify: YAML is valid (`python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"`)
+- [x] add `needs: lint` to the `molecule` job so it only runs after lint passes
+- [x] verify: YAML is valid (`python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"`)
 
 ### Task 5: Verify acceptance criteria
 

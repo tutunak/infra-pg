@@ -10,9 +10,37 @@ name: CI
       - master
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible and ansible-lint
+        run: |
+          pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Check molecule ANSIBLE_ROLES_PATH
+        run: python scripts/check_molecule_roles_path.py
+
+      - name: Run ansible-lint
+        run: ansible-lint
+
   molecule:
     name: Molecule - ${{ matrix.scenario }}
     runs-on: ubuntu-24.04
+    needs: lint
     strategy:
       fail-fast: false
       matrix:
