@@ -2,6 +2,10 @@
 # ansible-lint configuration
 # https://ansible.readthedocs.io/projects/lint/configuring/
 
+rulesdir:
+  - .ansible-lint-rules
+
+
 # restore.yml uses `hosts: "{{ target_host }}"` intentionally — target_host is
 # a required extra var passed at runtime (-e "target_host=..."). Provide a
 # placeholder value so ansible-lint's syntax check can evaluate the playbook.

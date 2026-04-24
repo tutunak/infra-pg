@@ -99,15 +99,15 @@ All are PGDG GPG key downloads from `postgresql.org` — external HTTP calls tha
 - Create: `.ansible-lint-rules/get_url_retries.py`
 - Modify: `.ansible-lint`
 
-- [ ] create `.ansible-lint-rules/` directory
-- [ ] implement `get_url_retries.py` as an ansible-lint `AnsibleLintRule` subclass:
+- [x] create `.ansible-lint-rules/` directory
+- [x] implement `get_url_retries.py` as an ansible-lint `AnsibleLintRule` subclass:
   - Rule ID: `LOCAL001`
   - description: `"External download task is missing retries — transient failures will abort the play"`
   - match tasks where module is `ansible.builtin.get_url` or `get_url`
   - violation if `retries` not present at task level
-- [ ] add `rulesdir: [.ansible-lint-rules]` to `.ansible-lint`
-- [ ] verify: run `ansible-lint` across all roles — must pass with no `LOCAL001` violations (Task 2 fixed all existing ones)
-- [ ] verify: create a temp task file with a bare `get_url` (no retries), run `ansible-lint` on it — must report `LOCAL001`, then remove temp file
+- [x] add `rulesdir: [.ansible-lint-rules]` to `.ansible-lint`
+- [x] verify: run `ansible-lint` across all roles — must pass with no `LOCAL001` violations (Task 2 fixed all existing ones)
+- [x] verify: create a temp task file with a bare `get_url` (no retries), run `ansible-lint` on it — must report `LOCAL001`, then remove temp file
 
 ### Task 4: CI lint job
 
