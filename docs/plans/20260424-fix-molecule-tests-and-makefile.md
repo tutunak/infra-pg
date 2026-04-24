@@ -149,14 +149,14 @@ Same root cause as Task 1 — integration scenario has its own copy of these ass
 
 Root cause: WAL-G v3.0.8 release assets use `wal-g-pg-24.04-amd64` naming (no `ubuntu-` prefix). The configured name `wal-g-pg-ubuntu-24.04-amd64` returns HTTP 404 after 3 retries. Integration scenario inherits same failure.
 
-- [ ] Change `walg_binary_name` default value:
+- [x] Change `walg_binary_name` default value:
   ```yaml
   # before
   walg_binary_name: "wal-g-pg-ubuntu-24.04-amd64"
   # after
   walg_binary_name: "wal-g-pg-24.04-amd64"
   ```
-- [ ] Update inline comments for 22.04 and 20.04 examples to match correct naming (remove `ubuntu-` prefix from comments)
+- [x] Update inline comments for 22.04 and 20.04 examples to match correct naming (remove `ubuntu-` prefix from comments)
 
 ---
 
