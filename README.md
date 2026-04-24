@@ -215,7 +215,8 @@ changed tasks on the second pass.
 | `pg_version` | `17` | PostgreSQL major version |
 | `pg_private_subnet` | `10.0.0.0/24` | Subnet allowed to reach PgBouncer |
 | `pgbouncer_private_iface` | `eth1` | NIC name for PgBouncer listen address |
-| `walg_version` | `v3.0.3` | WAL-G release tag (pinned) |
+| `walg_version` | `v3.0.8` | WAL-G release tag (pinned) |
+| `walg_binary_name` | `wal-g-pg-24.04-amd64` | WAL-G binary filename from GitHub releases; override for other OS/arch (e.g. `wal-g-pg-22.04-amd64`) |
 | `pg_databases` | `[]` | List of `{name, owner, password}` dicts |
 
 Override `pgbouncer_private_iface` per host in `host_vars/<host>/vars.yml` if your
