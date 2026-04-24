@@ -29,7 +29,7 @@
     - name: Assert port 5432 is NOT bound to 0.0.0.0
       ansible.builtin.assert:
         that:
-          - not (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432'))
+          - (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432')) is none
         fail_msg: "Port 5432 is bound to 0.0.0.0 (should be localhost only)"
 
     - name: Check PostgreSQL version is 17
@@ -40,7 +40,7 @@
     - name: Assert PostgreSQL {{ pg_version }}
       ansible.builtin.assert:
         that:
-          - "'{{ pg_version }}' in pg_version_output.stdout"
+          - "(pg_version | string) in pg_version_output.stdout"
         fail_msg: "PostgreSQL {{ pg_version }} is not installed"
 
     - name: Read pg_hba.conf
@@ -92,7 +92,7 @@
     - name: Assert listen_addresses is localhost
       ansible.builtin.assert:
         that:
-          - "pg_conf_content.content | b64decode | regex_search(\"listen_addresses\\\\s*=\\\\s*'localhost'\")"
+          - "(pg_conf_content.content | b64decode | regex_search(\"listen_addresses\\\\s*=\\\\s*'localhost'\")) is not none"
         fail_msg: "listen_addresses is not set to 'localhost' in postgresql.conf"
 
     - name: Assert archive_mode is on

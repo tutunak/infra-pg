@@ -80,21 +80,21 @@ Root cause: `regex_search()` returns the matched string (truthy) or `None` (fals
 **Files:**
 - Modify: `roles/postgres/molecule/default/verify.yml`
 
-- [ ] Fix `Assert PostgreSQL {{ pg_version }}` — `pg_version: 17` is an integer, causes `_AnsibleTaggedInt` error:
+- [x] Fix `Assert PostgreSQL {{ pg_version }}` — `pg_version: 17` is an integer, causes `_AnsibleTaggedInt` error:
   ```yaml
   # before
   - "'{{ pg_version }}' in pg_version_output.stdout"
   # after
   - "(pg_version | string) in pg_version_output.stdout"
   ```
-- [ ] Fix `Assert port 5432 is NOT bound to 0.0.0.0` (line 32) — bare regex_search:
+- [x] Fix `Assert port 5432 is NOT bound to 0.0.0.0` (line 32) — bare regex_search:
   ```yaml
   # before
   - not (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432'))
   # after
   - (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432')) is none
   ```
-- [ ] Fix `Assert listen_addresses is localhost` (line 95) — bare regex_search:
+- [x] Fix `Assert listen_addresses is localhost` (line 95) — bare regex_search:
   ```yaml
   # before
   - "pg_conf_content.content | b64decode | regex_search(\"listen_addresses\\\\s*=\\\\s*'localhost'\")"
