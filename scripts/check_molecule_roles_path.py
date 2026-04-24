@@ -6,7 +6,6 @@ Known patterns and their expected values:
   molecule/<scenario>/molecule.yml             -> ../../roles
 """
 
-import os
 import sys
 import pathlib
 
@@ -18,30 +17,14 @@ except ImportError:
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-PATTERNS = {
-    # (parts from repo root): expected ANSIBLE_ROLES_PATH
-    4: {
-        # roles/<name>/molecule/<scenario>/molecule.yml
-        "check": lambda parts: parts[0] == "roles" and parts[2] == "molecule",
-        "expected": "../../../../roles",
-        "description": "roles/<name>/molecule/<scenario>/molecule.yml",
-    },
-    2: {
-        # molecule/<scenario>/molecule.yml
-        "check": lambda parts: parts[0] == "molecule",
-        "expected": "../../roles",
-        "description": "molecule/<scenario>/molecule.yml",
-    },
-}
-
 
 def get_expected_path(rel_path: pathlib.Path):
     """Return expected ANSIBLE_ROLES_PATH for a given molecule.yml relative path."""
     parts = rel_path.parts[:-1]  # strip the filename itself
-    depth = len(parts)
-    pattern = PATTERNS.get(depth)
-    if pattern and pattern["check"](parts):
-        return pattern["expected"], pattern["description"]
+    if len(parts) == 4 and parts[0] == "roles" and parts[2] == "molecule":
+        return "../../../../roles", "roles/<name>/molecule/<scenario>/molecule.yml"
+    if len(parts) == 2 and parts[0] == "molecule":
+        return "../../roles", "molecule/<scenario>/molecule.yml"
     return None, None
 
 
@@ -79,18 +62,18 @@ def main():
         print("ERROR: no molecule.yml files found under", REPO_ROOT)
         sys.exit(1)
 
-    results = [check_molecule_file(f) for f in mol_files]
-
-    for _, msg in results:
+    failures = 0
+    for f in mol_files:
+        passed, msg = check_molecule_file(f)
         print(msg)
+        if not passed:
+            failures += 1
 
-    failures = [msg for passed, msg in results if not passed]
     if failures:
-        print(f"\n{len(failures)} check(s) failed.")
+        print(f"\n{failures} check(s) failed.")
         sys.exit(1)
-    else:
-        print(f"\nAll {len(results)} molecule.yml file(s) passed.")
-        sys.exit(0)
+    print(f"\nAll {len(mol_files)} molecule.yml file(s) passed.")
+    sys.exit(0)
 
 
 if __name__ == "__main__":

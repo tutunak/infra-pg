@@ -13,8 +13,6 @@ _GET_URL_MODULES = {"get_url", "ansible.builtin.get_url"}
 
 
 class GetUrlRetriesRule(AnsibleLintRule):
-    """External download task is missing retries — transient failures will abort the play."""
-
     id = "LOCAL001"
     description = (
         "External download task is missing retries — transient failures will abort the play"
@@ -28,10 +26,12 @@ class GetUrlRetriesRule(AnsibleLintRule):
         task: Task,
         file: Lintable | None = None,
     ) -> bool | str:
-        """Flag get_url tasks that lack a retries directive."""
+        """Flag get_url tasks that lack retries or until directives."""
         module = task["action"].get("__ansible_module__", "")
         if module not in _GET_URL_MODULES:
             return False
         if "retries" not in task.raw_task:
             return "get_url task is missing 'retries'"
+        if "until" not in task.raw_task:
+            return "get_url task has 'retries' but is missing 'until'"
         return False

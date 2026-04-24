@@ -41,6 +41,19 @@ ansible-galaxy collection install -r requirements.yml
 pip install molecule molecule-plugins[podman] ansible-lint
 ```
 
+### Linting
+
+`ansible-lint` runs in CI and gates all Molecule jobs. Run it locally before pushing:
+
+```
+python scripts/check_molecule_roles_path.py
+ansible-lint
+```
+
+`check_molecule_roles_path.py` validates that `ANSIBLE_ROLES_PATH` is correct in every
+`molecule.yml`. A custom rule (`LOCAL001` in `.ansible-lint-rules/`) enforces that all
+`get_url` tasks include `retries` and `until`.
+
 ## Vault setup
 
 1. Copy the example host vars for your host:
