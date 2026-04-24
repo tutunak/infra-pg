@@ -63,16 +63,16 @@ Both checks run in a new `lint` CI job that gates the existing `molecule` jobs.
 **Files:**
 - Create: `scripts/check_molecule_roles_path.py`
 
-- [ ] create `scripts/check_molecule_roles_path.py` (note: `scripts/` dir already exists)
-- [ ] walk repo from root, collect all `molecule.yml` paths
-- [ ] for each file match against exactly two known patterns:
+- [x] create `scripts/check_molecule_roles_path.py` (note: `scripts/` dir already exists)
+- [x] walk repo from root, collect all `molecule.yml` paths
+- [x] for each file match against exactly two known patterns:
   - `roles/<name>/molecule/<scenario>/molecule.yml` → expected `../../../../roles`
   - `molecule/<scenario>/molecule.yml` → expected `../../roles`
   - any other pattern → fail loudly with "unknown molecule.yml location pattern"
-- [ ] read declared value from `provisioner.env.ANSIBLE_ROLES_PATH` in each `molecule.yml`
-- [ ] print PASS/FAIL per file; exit 1 if any mismatch or unknown pattern
-- [ ] verify: run `python scripts/check_molecule_roles_path.py` — must exit 0 on current repo state
-- [ ] verify: temporarily set one path to `../../roles`, re-run — must exit 1 with clear error, then revert
+- [x] read declared value from `provisioner.env.ANSIBLE_ROLES_PATH` in each `molecule.yml`
+- [x] print PASS/FAIL per file; exit 1 if any mismatch or unknown pattern
+- [x] verify: run `python scripts/check_molecule_roles_path.py` — must exit 0 on current repo state
+- [x] verify: temporarily set one path to `../../roles`, re-run — must exit 1 with clear error, then revert
 
 ### Task 2: Fix existing get_url tasks missing retries
 
