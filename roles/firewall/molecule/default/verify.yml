@@ -19,17 +19,17 @@
     - name: Assert port 6432 is allowed from private subnet
       ansible.builtin.assert:
         that:
-          - "ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')"
+          - "(ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')) is not none"
         fail_msg: "UFW rule allowing TCP 6432 from 10.0.0.0/24 not found"
 
     - name: Assert SSH (port 22) is allowed
       ansible.builtin.assert:
         that:
-          - "ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')"
+          - "(ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')) is not none"
         fail_msg: "UFW rule allowing SSH (port 22) not found"
 
     - name: Assert port 5432 is not in ALLOW rules
       ansible.builtin.assert:
         that:
-          - not (ufw_status.stdout | regex_search('5432.*ALLOW'))
+          - (ufw_status.stdout | regex_search('5432.*ALLOW')) is none
         fail_msg: "Port 5432 appears in UFW ALLOW rules (should be blocked by default deny)"

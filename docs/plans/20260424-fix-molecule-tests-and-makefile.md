@@ -51,21 +51,21 @@ Three independent bug fixes + one new file:
 
 Root cause: `regex_search()` returns the matched string (truthy) or `None` (falsy), but newer Ansible requires explicit boolean in `assert.that`. A non-None string passes silently as `True` type `str`, causing the error.
 
-- [ ] Change `Assert port 6432 is allowed from private subnet` assertion:
+- [x] Change `Assert port 6432 is allowed from private subnet` assertion:
   ```yaml
   # before
   - "ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')"
   # after
   - "(ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')) is not none"
   ```
-- [ ] Change `Assert SSH (port 22) is allowed` assertion:
+- [x] Change `Assert SSH (port 22) is allowed` assertion:
   ```yaml
   # before
   - "ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')"
   # after
   - "(ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')) is not none"
   ```
-- [ ] Change `Assert port 5432 is not in ALLOW rules` assertion:
+- [x] Change `Assert port 5432 is not in ALLOW rules` assertion:
   ```yaml
   # before
   - not (ufw_status.stdout | regex_search('5432.*ALLOW'))
