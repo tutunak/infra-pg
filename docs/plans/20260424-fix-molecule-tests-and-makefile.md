@@ -167,7 +167,7 @@ Root cause: WAL-G v3.0.8 release assets use `wal-g-pg-24.04-amd64` naming (no `u
 
 Same root cause. Line 38 validates `restore_time` format but will raise a type error on newer Ansible.
 
-- [ ] Fix line 38 — date format validation assertion:
+- [x] Fix line 38 — date format validation assertion:
   ```yaml
   # before
   - restore_time | regex_search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$')

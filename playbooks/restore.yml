@@ -35,7 +35,7 @@
         that:
           - restore_time is defined
           - restore_time | length > 0
-          - restore_time | regex_search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$')
+          - (restore_time | regex_search('^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$')) is not none
         fail_msg: >
           restore_time is required and must match 'YYYY-MM-DD HH:MM:SS'.
           Pass -e "restore_time='2026-04-18 14:30:00'"
