@@ -35,7 +35,7 @@
     - name: Assert port 5432 is NOT bound to 0.0.0.0 (localhost only)
       ansible.builtin.assert:
         that:
-          - not (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432'))
+          - (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432')) is none
         fail_msg: "Port 5432 is bound to 0.0.0.0 — should be localhost only"
 
     - name: Assert scram-sha-256 in pg_hba.conf
@@ -194,17 +194,17 @@
     - name: Assert port 6432 is allowed from private subnet
       ansible.builtin.assert:
         that:
-          - "ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')"
+          - "(ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')) is not none"
         fail_msg: "UFW rule for port 6432 from 10.0.0.0/24 not found"
 
     - name: Assert SSH (22/OpenSSH) is allowed
       ansible.builtin.assert:
         that:
-          - "ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')"
+          - "(ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')) is not none"
         fail_msg: "SSH rule not found in UFW rules"
 
     - name: Assert port 5432 does not appear in ALLOW rules
       ansible.builtin.assert:
         that:
-          - not (ufw_status.stdout | regex_search('5432.*ALLOW'))
+          - (ufw_status.stdout | regex_search('5432.*ALLOW')) is none
         fail_msg: "Port 5432 appears in UFW ALLOW rules — should be blocked by default deny"

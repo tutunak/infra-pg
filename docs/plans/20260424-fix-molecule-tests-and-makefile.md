@@ -111,28 +111,28 @@ Root cause: `regex_search()` returns the matched string (truthy) or `None` (fals
 
 Same root cause as Task 1 — integration scenario has its own copy of these assertions.
 
-- [ ] Fix line 38 — `Assert port 5432 is NOT bound to 0.0.0.0`:
+- [x] Fix line 38 — `Assert port 5432 is NOT bound to 0.0.0.0`:
   ```yaml
   # before
   - not (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432'))
   # after
   - (ss_output.stdout | regex_search('0\\.0\\.0\\.0:5432')) is none
   ```
-- [ ] Fix line 197 — `Assert port 6432 is allowed from private subnet`:
+- [x] Fix line 197 — `Assert port 6432 is allowed from private subnet`:
   ```yaml
   # before
   - "ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')"
   # after
   - "(ufw_status.stdout | regex_search('6432.*10\\.0\\.0\\.0/24|10\\.0\\.0\\.0/24.*6432')) is not none"
   ```
-- [ ] Fix line 203 — `Assert SSH (port 22) is allowed`:
+- [x] Fix line 203 — `Assert SSH (port 22) is allowed`:
   ```yaml
   # before
   - "ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')"
   # after
   - "(ufw_status.stdout | regex_search('(22|OpenSSH).*ALLOW')) is not none"
   ```
-- [ ] Fix line 209 — `Assert port 5432 is not in ALLOW rules`:
+- [x] Fix line 209 — `Assert port 5432 is not in ALLOW rules`:
   ```yaml
   # before
   - not (ufw_status.stdout | regex_search('5432.*ALLOW'))
